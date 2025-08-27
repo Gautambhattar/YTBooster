@@ -1,0 +1,509 @@
+<div th:fragment="views">
+  
+  <style>
+    /* 🎨 Dashboard Theme CSS Variables */
+    :root {
+      --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --primary-color: #0dcaf0;
+      --secondary-color: #20c997;
+      --background-dark: #1e1e2f;
+      --surface-dark: #2a2a3d;
+      --surface-light: #333347;
+      --text-primary: #f0f0f5;
+      --text-secondary: #9ca3af;
+      --border-color: #444;
+      --success-color: #22c55e;
+      --warning-color: #f59e0b;
+      --error-color: #ef4444;
+    }
+
+    /* Container */
+    .views-wrap {
+      display: block;
+      font-family: var(--font-primary);
+      color: var(--text-primary);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    /* Header Section */
+    .views-header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .views-header h2 {
+      color: var(--primary-color);
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-family: var(--font-primary);
+    }
+
+    .header-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin: 0;
+      font-family: var(--font-primary);
+    }
+
+    /* Card Container */
+    .views-card {
+      background: var(--surface-dark);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 1px solid #333;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .views-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    /* Form Section */
+    .views-form-section {
+      padding: 2rem;
+    }
+
+    .form-title {
+      color: var(--primary-color);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: var(--font-primary);
+    }
+
+    .form-description {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    /* Form Layout */
+    .views-form {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    /* Form Groups */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-label {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 0.9rem;
+      font-family: var(--font-primary);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      z-index: 2;
+    }
+
+    .views-input, .views-select {
+      width: 100%;
+      background: var(--background-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem 1rem 1rem 3rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: var(--font-primary);
+      transition: all 0.3s ease;
+    }
+
+    .views-select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 16px;
+    }
+
+    .views-input:focus, .views-select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.1);
+      background: var(--surface-light);
+    }
+
+    .views-input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+
+    /* Select Options */
+    .views-select option {
+      background: var(--surface-dark);
+      color: var(--text-primary);
+      padding: 0.75rem;
+    }
+
+    /* Button */
+    .views-btn {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #000;
+      border: none;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: var(--font-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      min-height: 54px;
+      white-space: nowrap;
+    }
+
+    .views-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(13, 202, 240, 0.4);
+    }
+
+    .views-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .views-btn:disabled {
+      background: var(--border-color);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .btn-icon {
+      font-size: 1.1rem;
+    }
+
+    /* Wallet Info Section */
+    .wallet-info {
+      background: var(--surface-light);
+      border-radius: 8px;
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .wallet-display {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .wallet-icon {
+      font-size: 1.2rem;
+    }
+
+    .wallet-amount {
+      color: var(--success-color);
+      font-weight: 700;
+      font-size: 1.1rem;
+      font-family: var(--font-primary);
+    }
+
+    .wallet-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .wallet-warning {
+      color: var(--warning-color);
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Package Info */
+    .package-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .package-badge {
+      background: rgba(13, 202, 240, 0.1);
+      color: var(--primary-color);
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      border: 1px solid rgba(13, 202, 240, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    /* Status Messages */
+    .status-message {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .success-message {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: var(--success-color);
+    }
+
+    .error-message {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--error-color);
+    }
+
+    .message-icon {
+      font-size: 1.2rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .views-wrap {
+        margin: 0 -1rem;
+      }
+
+      .views-card {
+        border-radius: 8px;
+      }
+
+      .views-form-section {
+        padding: 1.5rem;
+      }
+
+      .views-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .views-btn {
+        width: 100%;
+        padding: 1rem;
+      }
+
+      .wallet-info {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .package-info {
+        justify-content: center;
+      }
+
+      .status-message {
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .views-form-section {
+        padding: 1rem;
+      }
+
+      .views-header {
+        margin-bottom: 1.5rem;
+      }
+
+      .views-header h2 {
+        font-size: 1.3rem;
+      }
+
+      .form-title {
+        font-size: 1.1rem;
+      }
+
+      .views-input, .views-select {
+        padding: 0.875rem 0.875rem 0.875rem 2.5rem;
+        font-size: 0.95rem;
+      }
+
+      .input-icon {
+        left: 0.75rem;
+        font-size: 0.9rem;
+      }
+
+      .views-btn {
+        padding: 0.875rem;
+        font-size: 0.95rem;
+      }
+
+      .wallet-amount {
+        font-size: 1rem;
+      }
+    }
+  </style>
+
+  <!-- Header Section -->
+  <div class="views-header">
+    <h2>👁️ Boost Views & Watch Time</h2>
+    <p class="header-subtitle">Increase your video views and engagement with real viewers</p>
+  </div>
+
+  <!-- Main Card -->
+  <div class="views-wrap">
+    <div class="views-card">
+      <div class="views-form-section">
+        <h3 class="form-title">
+          <span>🎯</span>
+          <span>Select Your Views Package</span>
+        </h3>
+        <p class="form-description">
+          Enter a valid YouTube video URL and select your preferred views & watch time package.
+        </p>
+
+        <!-- Order Form -->
+        <form class="views-form" th:action="@{/orders/views}" th:object="${order}" method="post">
+          
+          <!-- URL Input -->
+          <div class="form-group">
+            <label for="video-url" class="form-label">YouTube Video URL</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔗</span>
+              <input id="video-url"
+                     class="views-input" 
+                     type="url" 
+                     th:field="*{link}" 
+                     placeholder="https://youtube.com/watch?v=..." 
+                     required/>
+            </div>
+          </div>
+
+          <!-- Package Selection & Order Button -->
+          <div class="form-row">
+            <div class="form-group">
+              <label for="package-select" class="form-label">Views & Watch Time Package</label>
+              <div class="input-wrapper">
+                <span class="input-icon">👁️</span>
+                <select id="package-select" 
+                        class="views-select" 
+                        th:field="*{amount}" 
+                        required>
+                  <option value="" disabled selected>Choose your package</option>
+                  <option th:value="20">⭐ Starter - 15 Views + 2 Hours - ₹20</option>
+                  <option th:value="40">🚀 Popular - 30 Views + 4 Hours - ₹40</option>
+                  <option th:value="90">💎 Growth - 100 Views + 4 Hours - ₹90</option>
+                  <option th:value="150">🔥 Premium - 200 Views + 4 Hours - ₹150</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="views-btn" 
+                    type="submit"
+                    th:disabled="${wallet != null and wallet < (order.amount ?: 0)}">
+              <span class="btn-icon">🛒</span>
+              <span>Place Order</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Wallet Information -->
+        <div class="wallet-info">
+          <div class="wallet-display" th:if="${wallet != null}">
+            <span class="wallet-icon">💰</span>
+            <div>
+              <div class="wallet-label">Current Balance</div>
+              <div class="wallet-amount">₹<span th:text="${wallet}">0</span></div>
+            </div>
+          </div>
+          
+          <div th:if="${wallet == null}" class="wallet-warning">
+            <span>💡</span>
+            <span>Tip: Recharge your wallet for faster checkout</span>
+          </div>
+          
+          <div th:if="${wallet != null and wallet < (order.amount ?: 0)}" class="wallet-warning">
+            <span>⚠️</span>
+            <span>Insufficient balance - Please recharge your wallet</span>
+          </div>
+        </div>
+
+        <!-- Package Information -->
+        <div class="package-info">
+          <span class="package-badge">
+            <span>⚡</span>
+            <span>Fast Delivery</span>
+          </span>
+          <span class="package-badge">
+            <span>👁️</span>
+            <span>Real Views</span>
+          </span>
+          <span class="package-badge">
+            <span>⏰</span>
+            <span>Watch Time Included</span>
+          </span>
+          <span class="package-badge">
+            <span>🔒</span>
+            <span>Safe & Secure</span>
+          </span>
+        </div>
+
+        <!-- Status Messages -->
+        <div th:if="${error != null}" class="status-message error-message">
+          <span class="message-icon">❌</span>
+          <span th:text="${error}">Error message</span>
+        </div>
+
+        <div th:if="${success != null}" class="status-message success-message">
+          <span class="message-icon">✅</span>
+          <span th:text="${success}">Success message</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

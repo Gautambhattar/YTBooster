@@ -1,0 +1,825 @@
+<div th:fragment="recharges">
+
+  <style>
+    /* 🎨 Dashboard Theme CSS Variables */
+    :root {
+      --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --primary-color: #0dcaf0;
+      --secondary-color: #20c997;
+      --background-dark: #1e1e2f;
+      --surface-dark: #2a2a3d;
+      --surface-light: #333347;
+      --text-primary: #f0f0f5;
+      --text-secondary: #9ca3af;
+      --border-color: #444;
+      --success-color: #22c55e;
+      --warning-color: #f59e0b;
+      --error-color: #ef4444;
+    }
+
+    /* Container */
+    .admin-recharges-container {
+      font-family: var(--font-primary);
+      color: var(--text-primary);
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Header Section */
+    .recharges-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: var(--surface-light);
+      color: var(--text-primary);
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    .btn-back:hover {
+      background: var(--primary-color);
+      color: #000;
+      border-color: var(--primary-color);
+      transform: translateX(-2px);
+      text-decoration: none;
+    }
+
+    .page-title {
+      color: var(--primary-color);
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Alert Messages */
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .alert.success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: var(--success-color);
+    }
+
+    .alert.error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--error-color);
+    }
+
+    /* Filter Section */
+    .filter-section {
+      background: var(--surface-dark);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .filter-title {
+      color: var(--text-primary);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .filter-form {
+      display: grid;
+      grid-template-columns: auto auto 1fr 1fr auto auto;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .filter-label {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .radio {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-primary);
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .radio input[type="radio"] {
+      accent-color: var(--primary-color);
+      margin: 0;
+    }
+
+    .filter-input {
+      background: var(--background-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-family: var(--font-primary);
+      transition: all 0.3s ease;
+      min-width: 150px;
+    }
+
+    .filter-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.1);
+    }
+
+    .filter-input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+
+    .btn-green {
+      background: linear-gradient(135deg, var(--success-color), #16a34a);
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .btn-green:hover {
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-reset {
+      background: var(--surface-light);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .btn-reset:hover {
+      background: var(--border-color);
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    /* Status Tabs */
+    .status-tabs-section {
+      background: var(--surface-dark);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .tabs-title {
+      color: var(--text-primary);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-tabs {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .status-tabs a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      background: var(--surface-light);
+      color: var(--text-secondary);
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-tabs a::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .status-tabs a:hover::before {
+      left: 100%;
+    }
+
+    .status-tabs a:hover {
+      background: var(--primary-color);
+      color: #000;
+      border-color: var(--primary-color);
+      transform: translateY(-1px);
+      text-decoration: none;
+    }
+
+    .status-tabs a.active {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #000;
+      border-color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    /* Table Container */
+    .recharges-table-container {
+      background: var(--surface-dark);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 1px solid #333;
+      overflow: hidden;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+    }
+
+    /* Table Styling */
+    .recharges-table {
+      width: 100%;
+      min-width: 1000px;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .recharges-table thead th {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #000;
+      padding: 1.25rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+    }
+
+    .recharges-table tbody td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    .recharges-table tbody tr {
+      transition: all 0.3s ease;
+    }
+
+    .recharges-table tbody tr:hover {
+      background: rgba(13, 202, 240, 0.05);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Table Cell Styling */
+    .user-id {
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      background: rgba(13, 202, 240, 0.1);
+      color: var(--primary-color);
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      border: 1px solid rgba(13, 202, 240, 0.3);
+      display: inline-block;
+    }
+
+    .user-email {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    .recharge-amount {
+      color: var(--success-color);
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .utr-code {
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning-color);
+      padding: 0.375rem 0.75rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      display: inline-block;
+    }
+
+    .recharge-date {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-family: 'SF Mono', Monaco, monospace;
+    }
+
+    /* Status Badges */
+    .badge {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: inline-block;
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .badge.pending {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning-color);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge.complete {
+      background: rgba(34, 197, 94, 0.1);
+      color: var(--success-color);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .badge.success {
+      background: rgba(13, 202, 240, 0.1);
+      color: var(--primary-color);
+      border: 1px solid rgba(13, 202, 240, 0.3);
+    }
+
+    /* Update Form */
+    .tiny-form {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-select {
+      background: var(--background-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 0.5rem center;
+      background-size: 14px;
+      padding-right: 2rem;
+      min-width: 100px;
+    }
+
+    .status-select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.1);
+    }
+
+    .status-select option {
+      background: var(--surface-dark);
+      color: var(--text-primary);
+    }
+
+    .update-btn {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #000;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .update-btn:hover {
+      background: linear-gradient(135deg, var(--secondary-color), #0bb8da);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(13, 202, 240, 0.4);
+    }
+
+    /* Empty State */
+    .no-data {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-secondary);
+    }
+
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-message {
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-hint {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .filter-form {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .filter-group {
+        width: 100%;
+      }
+
+      .radio-group {
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .recharges-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .status-tabs {
+        justify-content: center;
+      }
+
+      .status-tabs a {
+        flex: 1;
+        justify-content: center;
+        min-width: 0;
+      }
+
+      /* Mobile Table */
+      .recharges-table,
+      .recharges-table thead,
+      .recharges-table tbody,
+      .recharges-table th,
+      .recharges-table td,
+      .recharges-table tr {
+        display: block;
+      }
+
+      .recharges-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+      }
+
+      .recharges-table tbody tr {
+        background: var(--surface-light);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        position: relative;
+      }
+
+      .recharges-table tbody tr:hover {
+        transform: none;
+      }
+
+      .recharges-table td {
+        border: none;
+        padding: 0.75rem 0;
+        position: relative;
+        padding-left: 35%;
+        display: flex;
+        align-items: center;
+        min-height: 50px;
+      }
+
+      .recharges-table td:before {
+        content: attr(data-label) ":";
+        position: absolute;
+        left: 0;
+        top: 0.75rem;
+        width: 30%;
+        padding-right: 0.5rem;
+        white-space: nowrap;
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .tiny-form {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+      }
+
+      .status-select,
+      .update-btn {
+        width: 100%;
+      }
+
+      .no-data {
+        padding: 3rem 1rem;
+      }
+
+      .empty-icon {
+        font-size: 3rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .admin-recharges-container {
+        margin: 0 -1rem;
+      }
+
+      .recharges-table-container,
+      .filter-section,
+      .status-tabs-section {
+        border-radius: 8px;
+      }
+
+      .filter-section,
+      .status-tabs-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .recharges-table td {
+        padding-left: 40%;
+        font-size: 0.85rem;
+      }
+
+      .recharges-table td:before {
+        width: 35%;
+        font-size: 0.75rem;
+      }
+
+      .page-title {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+
+  <div class="admin-recharges-container">
+    
+    <!-- Header Section -->
+    <div class="recharges-header">
+      <div class="header-left">
+        <a th:href="@{/admindashboard(tab='recharges')}" class="btn-back">
+          <span>←</span>
+          <span>Back to Dashboard</span>
+        </a>
+        <h2 class="page-title">
+          <span>💳</span>
+          <span>Recharge Management</span>
+        </h2>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${message}" class="alert success">
+      <span>✅</span>
+      <span th:text="${message}"></span>
+    </div>
+    <div th:if="${error}" class="alert error">
+      <span>❌</span>
+      <span th:text="${error}"></span>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+      <h3 class="filter-title">
+        <span>🔍</span>
+        <span>Search & Filter</span>
+      </h3>
+      <form th:action="@{/admin/recharge}" method="get" class="filter-form">
+        
+        <div class="filter-group">
+          <label class="filter-label">Search Type</label>
+          <div class="radio-group">
+            <label class="radio">
+              <input type="radio" name="searchBy" value="utr"
+                     th:checked="${param.searchBy} ?: 'utr' == 'utr'">
+              <span>UTR</span>
+            </label>
+            <label class="radio">
+              <input type="radio" name="searchBy" value="user"
+                     th:checked="${param.searchBy} == 'user'">
+              <span>User ID</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">UTR Number</label>
+          <input type="text" 
+                 name="utr" 
+                 class="filter-input"
+                 placeholder="Enter UTR" 
+                 th:value="${param.utr}">
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">User ID</label>
+          <input type="text" 
+                 name="userId" 
+                 class="filter-input"
+                 placeholder="Enter User ID" 
+                 th:value="${param.userId}">
+        </div>
+
+        <button type="submit" class="btn-green">
+          <span>🔍 Search</span>
+        </button>
+        
+        <a href="?" class="btn-reset">
+          <span>🔄 Reset</span>
+        </a>
+
+      </form>
+    </div>
+
+    <!-- Status Tabs -->
+    <div class="status-tabs-section">
+      <h3 class="tabs-title">
+        <span>📊</span>
+        <span>Filter by Status</span>
+      </h3>
+      <nav class="status-tabs">
+        <a th:href="@{/admin/recharge}" 
+           th:classappend="${statusFilter=='ALL'} ? 'active' : ''">
+          <span>📋</span>
+          <span>All Recharges</span>
+        </a>
+        <a th:href="@{/admin/recharge(status='PENDING')}" 
+           th:classappend="${statusFilter=='PENDING'} ? 'active' : ''">
+          <span>⏳</span>
+          <span>Pending</span>
+        </a>
+        <a th:href="@{/admin/recharge(status='COMPLETE')}" 
+           th:classappend="${statusFilter=='COMPLETE'} ? 'active' : ''">
+          <span>✅</span>
+          <span>Completed</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Recharges Table -->
+    <div class="recharges-table-container">
+      <div class="table-scroll">
+        <table class="recharges-table">
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Email</th>
+              <th>Amount</th>
+              <th>UTR</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+              <th>Payment Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="r : ${recharges}">
+              <td data-label="User ID">
+                <span class="user-id" th:text="'#' + ${r.userId}"></span>
+              </td>
+              <td data-label="Email">
+                <span class="user-email" th:text="${r.email}"></span>
+              </td>
+              <td data-label="Amount">
+                <span class="recharge-amount">₹<span th:text="${r.amount}"></span></span>
+              </td>
+              <td data-label="UTR">
+                <span class="utr-code" th:text="${r.utr}"></span>
+              </td>
+              <td data-label="Status">
+                <span class="badge"
+                      th:text="${r.status}"
+                      th:classappend="${r.status == 'PENDING'  ? 'pending' :
+                                       r.status == 'COMPLETE' ? 'complete' :
+                                                                 'success'}">
+                </span>
+              </td>
+              <td data-label="Date">
+                <span class="recharge-date" th:text="${#temporals.format(r.createdAt,'dd-MM-yyyy HH:mm')}"></span>
+              </td>
+              <td data-label="Actions">
+                <form th:action="@{/admin/recharge/update}" method="post" class="tiny-form">
+                  <input type="hidden" name="utr" th:value="${r.utr}">
+                  <select name="status" class="status-select">
+                    <option th:value="PENDING" th:selected="${r.status=='PENDING'}">Pending</option>
+                    <option th:value="COMPLETE" th:selected="${r.status=='COMPLETE'}">Complete</option>
+                  </select>
+                  <button type="submit" class="update-btn">Update</button>
+                </form>
+              </td>
+              <td data-label="Payment Status">
+                <span th:text="${r.paymentStatus}"></span>
+              </td>
+            </tr>
+
+            <!-- Empty State -->
+            <tr th:if="${#lists.isEmpty(recharges)}">
+              <td colspan="8" class="no-data">
+                <div class="empty-icon">💳</div>
+                <div class="empty-message">No Recharge Records Found</div>
+                <div class="empty-hint">Recharge requests will appear here once users submit them</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,531 @@
+<div th:fragment="orders">
+    
+    <!-- Header Section -->
+    <div class="orders-header">
+        <h2>📋 My Orders</h2>
+        <p class="header-subtitle">Track your YouTube boost orders and their progress</p>
+    </div>
+
+    <!-- Orders Content -->
+    <div class="orders-card">
+        
+        <!-- Empty State -->
+        <div th:if="${orders == null or #lists.isEmpty(orders)}" class="empty-state">
+            <div class="empty-icon">📦</div>
+            <h3>No Orders Yet</h3>
+            <p>You haven't placed any orders yet. Start boosting your YouTube content today!</p>
+            <div class="empty-actions">
+                <a th:href="@{/dashboard(tab='subs')}" class="action-btn primary-btn">
+                    📈 Order Subscribers
+                </a>
+                <a th:href="@{/dashboard(tab='views')}" class="action-btn secondary-btn">
+                    👁️ Order Views
+                </a>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div th:if="${orders != null and not #lists.isEmpty(orders)}" class="table-container">
+            <div class="table-responsive">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th class="col-order-id">Order ID</th>
+                            <th class="col-video-url">Video URL</th>
+                            <th class="col-service">Service</th>
+                            <th class="col-amount">Amount</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-date">Order Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${orders}" class="table-row">
+                            <td class="order-id-cell" data-label="Order ID">
+                                <span class="order-id-badge" th:text="'#' + ${order.orderId}">
+                                    #12345
+                                </span>
+                            </td>
+                            
+                            <td class="video-url-cell" data-label="Video URL">
+                                <a th:href="${order.link}" 
+                                   target="_blank" 
+                                   class="video-link"
+                                   th:text="${#strings.abbreviate(order.link, 45)}"
+                                   th:title="${order.link}">
+                                    https://youtube.com/watch?v=example
+                                </a>
+                            </td>
+                            
+                            <td class="service-cell" data-label="Service">
+                                <div class="service-info">
+                                    <span class="service-name" th:text="${order.orderDescription}">YouTube Subscribers</span>
+                                </div>
+                            </td>
+                            
+                            <td class="amount-cell" data-label="Amount">
+                                <div class="amount-display">
+                                    <span class="currency">$</span>
+                                    <span class="amount-value" th:text="${order.amount}">10.00</span>
+                                </div>
+                            </td>
+                            
+                            <td class="status-cell" data-label="Status">
+                                <span class="status-badge"
+                                      th:text="${order.status}"
+                                      th:classappend="${order.status == 'PENDING' ? ' status-pending' : order.status == 'COMPLETE' ? ' status-complete' : order.status == 'PROCESSING' ? ' status-processing' : ' status-pending'}">
+                                    PENDING
+                                </span>
+                            </td>
+                            
+                            <td class="date-cell" data-label="Date">
+                                <div class="date-info">
+                                    <span class="date-primary" th:text="${order.createdAt != null ? #temporals.format(order.createdAt,'MMM dd, yyyy') : 'N/A'}">
+                                        Jan 15, 2025
+                                    </span>
+                                    <span class="date-time" th:text="${order.createdAt != null ? #temporals.format(order.createdAt,'HH:mm') : ''}">
+                                        14:30
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* 🎨 Dashboard Theme CSS Variables */
+        :root {
+            --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            --primary-color: #0dcaf0;
+            --secondary-color: #20c997;
+            --background-dark: #1e1e2f;
+            --surface-dark: #2a2a3d;
+            --surface-light: #333347;
+            --text-primary: #f0f0f5;
+            --text-secondary: #9ca3af;
+            --border-color: #444;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        /* Header Section */
+        .orders-header {
+            margin-bottom: 2rem;
+            font-family: var(--font-primary);
+        }
+
+        .orders-header h2 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-primary);
+        }
+
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin: 0;
+            font-family: var(--font-primary);
+        }
+
+        /* Card Container */
+        .orders-card {
+            background: var(--surface-dark);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+            overflow: hidden;
+            font-family: var(--font-primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .empty-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #000;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 202, 240, 0.4);
+            text-decoration: none;
+            color: #000;
+        }
+
+        .secondary-btn {
+            background: var(--surface-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .secondary-btn:hover {
+            background: var(--primary-color);
+            color: #000;
+            border-color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        /* Table Container */
+        .table-container {
+            padding: 0;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            background: var(--surface-dark);
+        }
+
+        /* Table Styling */
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+        }
+
+        /* Table Header */
+        .orders-table thead th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #000;
+            padding: 1.25rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .col-order-id { width: 12%; }
+        .col-video-url { width: 30%; }
+        .col-service { width: 20%; }
+        .col-amount { width: 12%; }
+        .col-status { width: 15%; }
+        .col-date { width: 15%; }
+
+        /* Table Body */
+        .orders-table tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        .table-row {
+            transition: all 0.3s ease;
+        }
+
+        .table-row:hover {
+            background: rgba(13, 202, 240, 0.05);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Order ID Cell */
+        .order-id-cell {
+            text-align: center;
+        }
+
+        .order-id-badge {
+            background: rgba(13, 202, 240, 0.1);
+            color: var(--primary-color);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            border: 1px solid rgba(13, 202, 240, 0.3);
+        }
+
+        /* Video URL Cell */
+        .video-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-family: 'SF Mono', Monaco, monospace;
+            background: rgba(13, 202, 240, 0.1);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid rgba(13, 202, 240, 0.3);
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        .video-link:hover {
+            background: var(--primary-color);
+            color: #000;
+            text-decoration: none;
+            transform: translateX(2px);
+        }
+
+        .video-link::after {
+            content: ' ↗';
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        /* Service Cell */
+        .service-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .service-name {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        /* Amount Cell */
+        .amount-display {
+            display: flex;
+            align-items: baseline;
+            gap: 0.125rem;
+        }
+
+        .currency {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+
+        .amount-value {
+            color: var(--success-color);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* Status Cell */
+        .status-cell {
+            text-align: center;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            min-width: 90px;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-complete {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-processing {
+            background: rgba(13, 202, 240, 0.1);
+            color: var(--primary-color);
+            border: 1px solid rgba(13, 202, 240, 0.3);
+        }
+
+        /* Date Cell */
+        .date-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .date-primary {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .date-time {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+
+        /* Mobile Responsive Design */
+        @media (max-width: 768px) {
+            .orders-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .empty-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .action-btn {
+                width: 200px;
+                text-align: center;
+            }
+
+            /* Mobile Table */
+            .orders-table,
+            .orders-table thead,
+            .orders-table tbody,
+            .orders-table th,
+            .orders-table td,
+            .orders-table tr {
+                display: block;
+            }
+
+            .orders-table thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            .orders-table tbody tr {
+                background: var(--surface-light);
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                position: relative;
+            }
+
+            .orders-table tbody tr:hover {
+                transform: none;
+            }
+
+            .orders-table td {
+                border: none;
+                padding: 0.75rem 0;
+                position: relative;
+                padding-left: 35%;
+                display: flex;
+                align-items: center;
+                min-height: 50px;
+            }
+
+            .orders-table td:before {
+                content: attr(data-label) ":";
+                position: absolute;
+                left: 0;
+                top: 0.75rem;
+                width: 30%;
+                padding-right: 0.5rem;
+                white-space: nowrap;
+                font-weight: 600;
+                color: var(--text-secondary);
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .video-link {
+                max-width: none;
+                word-break: break-word;
+                white-space: normal;
+            }
+
+            .order-id-badge,
+            .status-badge {
+                font-size: 0.75rem;
+                padding: 0.4rem 0.6rem;
+            }
+
+            .amount-display {
+                justify-content: flex-start;
+            }
+
+            .date-info {
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .orders-card {
+                margin: 0 -1rem;
+                border-radius: 8px;
+            }
+
+            .empty-state {
+                padding: 3rem 1rem;
+            }
+
+            .empty-icon {
+                font-size: 3rem;
+            }
+
+            .empty-state h3 {
+                font-size: 1.2rem;
+            }
+
+            .action-btn {
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .orders-table td {
+                padding-left: 40%;
+                font-size: 0.85rem;
+            }
+
+            .orders-table td:before {
+                width: 35%;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+
+</div>

@@ -1,0 +1,858 @@
+<div th:fragment="recharge" class="recharge-container">
+
+  <!-- Header Section -->
+  <div class="recharge-header">
+    <h2>💳 Recharge Wallet</h2>
+    <p class="header-subtitle">Add funds to your wallet to purchase services</p>
+  </div>
+
+  <!-- TEMPORARY DEBUG INFO - Remove after testing -->
+ 
+
+  <!-- Recharge Form -->
+  <div class="recharge-card">
+    <form th:action="@{/recharge/showRechargeForm}" method="post" th:object="${recharge}" class="recharge-form">
+      
+      <!-- Step 1: User Information -->
+      <div class="form-section" th:unless="${showPaymentStep}">
+        <h3 class="section-title">💰 Enter Recharge Details</h3>
+        
+        <div class="form-group">
+          <label for="amount" class="form-label">Amount (₹)</label>
+          <div class="input-wrapper">
+            <span class="input-icon">₹</span>
+            <input type="number" 
+                   id="amount"
+                   th:field="*{amount}" 
+                   class="form-input amount-input"
+                   placeholder="Enter amount (₹1 - ₹50,000)" 
+                   required 
+                   min="1" 
+                   max="50000"
+                   step="1"/>
+          </div>
+          <small class="input-help">Minimum: ₹1, Maximum: ₹50,000</small>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">📧</span>
+            <input type="email" 
+                   id="email"
+                   th:field="*{email}" 
+                   class="form-input"
+                   placeholder="your@email.com" 
+                   required/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="mobile" class="form-label">Mobile Number</label>
+          <div class="input-wrapper">
+            <span class="input-icon">📱</span>
+            <input type="tel" 
+                   id="mobile"
+                   th:field="*{mobileNumber}" 
+                   class="form-input"
+                   placeholder="10-digit mobile number" 
+                   pattern="[6-9][0-9]{9}"
+                   maxlength="10"
+                   required/>
+          </div>
+          <small class="input-help">Enter valid Indian mobile number (6-9 followed by 9 digits)</small>
+        </div>
+
+        <!-- FIXED: Enhanced button with debugging -->
+        <button class="btn primary-btn" 
+                type="submit" 
+                name="action" 
+                value="start"
+                onclick="console.log('Start button clicked with action:', this.value);">
+          <span class="btn-icon">💳</span>
+          <span class="btn-text">Proceed to Payment</span>
+        </button>
+      </div>
+
+      <!-- Step 2: Payment Information -->
+      <div th:if="${showPaymentStep}" class="form-section payment-section">
+        <h3 class="section-title">📱 Complete Payment</h3>
+        
+        <!-- Payment Summary -->
+        <div class="payment-summary">
+          <div class="summary-item">
+            <span class="summary-label">Amount:</span>
+            <span class="summary-value" th:text="'₹' + ${recharge.amount}">₹0</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Mobile:</span>
+            <span class="summary-value" th:text="${recharge.mobileNumber}">Mobile</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Email:</span>
+            <span class="summary-value" th:text="${recharge.email}">Email</span>
+          </div>
+        </div>
+        
+        <div class="payment-card">
+          <!-- QR Code Section -->
+          <div class="qr-section">
+            <h4 class="qr-title">Scan QR Code to Pay</h4>
+            
+            <!-- Dynamic QR code from admin settings -->
+            <div class="qr-container">
+              <img th:if="${qrCodeBase64 != null}" 
+                   th:src="'data:image/png;base64,' + ${qrCodeBase64}" 
+                   alt="UPI QR Code" 
+                   class="qr-code"/>
+              
+              <!-- Fallback if no QR code is set -->
+              <div th:unless="${qrCodeBase64 != null}" class="qr-fallback">
+                <div class="qr-placeholder">
+                  <span class="placeholder-icon">📱</span>
+                  <span class="placeholder-text">No QR Code Available</span>
+                </div>
+                <p class="fallback-message">Please use the UPI ID below for manual payment</p>
+              </div>
+            </div>
+            
+            <!-- Dynamic UPI information -->
+            <div class="upi-info-card">
+              <div class="upi-detail">
+                <span class="upi-label">UPI ID:</span>
+                <span class="upi-value" th:text="${upiId ?: 'Not configured'}">example@upi</span>
+                <button type="button" class="copy-btn" th:attr="data-copy=${upiId}" onclick="copyUpiId(this)">📋</button>
+              </div>
+              
+              <div class="upi-detail" th:if="${accountHolderName}">
+                <span class="upi-label">Pay to:</span>
+                <span class="upi-value" th:text="${accountHolderName}">Account Holder</span>
+              </div>
+              
+              <div class="payment-note" th:if="${paymentNote}">
+                <span class="note-icon">💡</span>
+                <span th:text="${paymentNote}">Payment instructions</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- UTR Input Section -->
+          <div class="utr-section">
+            <div class="form-group">
+              <label for="utr" class="form-label">Transaction ID / UTR *</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🔢</span>
+                <input type="text" 
+                       id="utr"
+                       th:field="*{utr}" 
+                       class="form-input utr-input"
+                       placeholder="Enter UTR / Transaction ID" 
+                       pattern="[0-9]{8,20}"
+                       minlength="8"
+                       maxlength="20"
+                       required/>
+              </div>
+              <small class="input-help">Enter the UTR/Transaction ID from your payment app (8-20 digits)</small>
+            </div>
+
+            <!-- FIXED: Proper Hidden Fields to preserve data between steps -->
+            <input type="hidden" name="amount" th:value="${recharge.amount}"/>
+            <input type="hidden" name="email" th:value="${recharge.email}"/>
+            <input type="hidden" name="mobileNumber" th:value="${recharge.mobileNumber}"/>
+            <input type="hidden" th:field="*{paymentMethod}" value="UPI"/>
+            <input type="hidden" th:field="*{status}" value="PENDING"/>
+
+            <!-- FIXED: Enhanced confirm button with debugging -->
+            <button class="btn confirm-btn" 
+                    type="submit" 
+                    name="action" 
+                    value="confirm"
+                    onclick="console.log('Confirm button clicked with action:', this.value);">
+              <span class="btn-icon">✅</span>
+              <span class="btn-text">Confirm Recharge</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- Status Message -->
+    <div th:if="${message}" class="status-message" 
+         th:classappend="${messageType == 'error'} ? 'error-message' : 'success-message'">
+      <span class="message-icon" th:text="${messageType == 'error'} ? '❌' : '✅'">✅</span>
+      <span th:text="${message}">Message text</span>
+    </div>
+  </div>
+
+  <style>
+    /* 🎨 Dashboard Theme CSS Variables */
+    :root {
+      --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --primary-color: #0dcaf0;
+      --secondary-color: #20c997;
+      --background-dark: #1e1e2f;
+      --surface-dark: #2a2a3d;
+      --surface-light: #333347;
+      --text-primary: #f0f0f5;
+      --text-secondary: #9ca3af;
+      --border-color: #444;
+      --success-color: #22c55e;
+      --warning-color: #f59e0b;
+      --error-color: #ef4444;
+    }
+
+    /* Container */
+    .recharge-container {
+      font-family: var(--font-primary);
+      color: var(--text-primary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Header Section */
+    .recharge-header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .recharge-header h2 {
+      color: var(--primary-color);
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-family: var(--font-primary);
+    }
+
+    .header-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin: 0;
+      font-family: var(--font-primary);
+    }
+
+    /* Card Container */
+    .recharge-card {
+      background: var(--surface-dark);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 1px solid #333;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .recharge-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    /* Form Section */
+    .form-section {
+      padding: 2rem;
+    }
+
+    .section-title {
+      color: var(--primary-color);
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-family: var(--font-primary);
+    }
+
+    /* Payment Summary */
+    .payment-summary {
+      background: var(--background-dark);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+    }
+
+    .summary-item:not(:last-child) {
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 0.5rem;
+      padding-bottom: 1rem;
+    }
+
+    .summary-label {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .summary-value {
+      color: var(--primary-color);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    /* Form Groups */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      color: var(--text-primary);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      font-family: var(--font-primary);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      color: var(--text-secondary);
+      font-size: 1rem;
+      z-index: 2;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--background-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem 1rem 1rem 3rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: var(--font-primary);
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.1);
+      background: var(--surface-light);
+    }
+
+    .form-input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+
+    .amount-input {
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .utr-input {
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      font-size: 0.9rem;
+    }
+
+    .input-help {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    /* Buttons */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 1rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: var(--font-primary);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .primary-btn {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #000;
+    }
+
+    .primary-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(13, 202, 240, 0.4);
+    }
+
+    .confirm-btn {
+      background: linear-gradient(135deg, var(--success-color), #16a34a);
+      color: #fff;
+    }
+
+    .confirm-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+    }
+
+    .btn-icon {
+      font-size: 1.1rem;
+    }
+
+    /* Loading Animation */
+    .spinner {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Payment Section */
+    .payment-section {
+      background: var(--surface-light);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .payment-card {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* QR Section */
+    .qr-section {
+      text-align: center;
+    }
+
+    .qr-title {
+      color: var(--text-primary);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .qr-container {
+      margin-bottom: 1.5rem;
+    }
+
+    .qr-code {
+      width: 200px;
+      height: 200px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      border: 3px solid var(--border-color);
+      background: #fff;
+    }
+
+    .qr-fallback {
+      margin: 1rem 0;
+    }
+
+    .qr-placeholder {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto 1rem;
+      border: 3px dashed var(--border-color);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: var(--background-dark);
+    }
+
+    .placeholder-icon {
+      font-size: 3rem;
+      color: var(--text-secondary);
+      opacity: 0.5;
+    }
+
+    .placeholder-text {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .fallback-message {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    /* UPI Info Card */
+    .upi-info-card {
+      background: var(--background-dark);
+      border-radius: 8px;
+      padding: 1.5rem;
+      border: 1px solid var(--border-color);
+      text-align: left;
+    }
+
+    .upi-detail {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      background: var(--surface-light);
+      border-radius: 6px;
+    }
+
+    .upi-detail:last-child {
+      margin-bottom: 0;
+    }
+
+    .upi-label {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+      min-width: 60px;
+    }
+
+    .upi-value {
+      color: var(--primary-color);
+      font-weight: 600;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 0.9rem;
+      flex: 1;
+      background: rgba(13, 202, 240, 0.1);
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      border: 1px solid rgba(13, 202, 240, 0.3);
+    }
+
+    .copy-btn {
+      background: var(--surface-dark);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.8rem;
+      min-width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .copy-btn:hover {
+      background: var(--primary-color);
+      color: #000;
+      border-color: var(--primary-color);
+    }
+
+    .payment-note {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 6px;
+      padding: 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      color: var(--warning-color);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .note-icon {
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* Status Messages */
+    .status-message {
+      margin: 1.5rem 2rem;
+      padding: 1rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .success-message {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: var(--success-color);
+    }
+
+    .error-message {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--error-color);
+    }
+
+    .message-icon {
+      font-size: 1.2rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .recharge-container {
+        margin: 0 -1rem;
+      }
+
+      .recharge-card {
+        border-radius: 8px;
+      }
+
+      .form-section {
+        padding: 1.5rem;
+      }
+
+      .recharge-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .payment-card {
+        gap: 1.5rem;
+      }
+
+      .qr-code,
+      .qr-placeholder {
+        width: 160px;
+        height: 160px;
+      }
+
+      .upi-detail {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+
+      .upi-value {
+        text-align: center;
+        word-break: break-all;
+      }
+
+      .copy-btn {
+        align-self: center;
+        width: auto;
+        padding: 0.5rem 1rem;
+      }
+
+      .status-message {
+        margin: 1rem;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .form-section {
+        padding: 1rem;
+      }
+
+      .recharge-header {
+        margin-bottom: 1.5rem;
+      }
+
+      .recharge-header h2 {
+        font-size: 1.3rem;
+      }
+
+      .btn {
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+      }
+
+      .upi-info-card {
+        padding: 1rem;
+      }
+
+      .payment-note {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+      }
+    }
+  </style>
+
+  <!-- FIXED: Enhanced JavaScript with debugging -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('=== RECHARGE FORM INITIALIZED ===');
+      
+      const form = document.querySelector('.recharge-form');
+      const mobileInput = document.getElementById('mobile');
+      const amountInput = document.getElementById('amount');
+      const utrInput = document.getElementById('utr');
+
+      // FIXED: Mobile number validation (removed extra backslash)
+      if (mobileInput) {
+        mobileInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '').substring(0, 10);
+          e.target.value = value;
+          console.log('Mobile input:', value);
+        });
+      }
+
+      // Amount input validation
+      if (amountInput) {
+        amountInput.addEventListener('input', function(e) {
+          let value = parseFloat(e.target.value);
+          if (value < 0) {
+            e.target.value = '';
+          }
+          console.log('Amount input:', e.target.value);
+        });
+      }
+
+      // UTR input - only allow numbers
+      if (utrInput) {
+        utrInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/[^0-9]/g, '');
+          e.target.value = value;
+          console.log('UTR input:', value);
+        });
+      }
+
+      // ENHANCED: Form submission debugging
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          console.log('=== FORM SUBMISSION DEBUG ===');
+          
+          // Get the clicked button (activeElement at time of submit)
+          const activeElement = document.activeElement;
+          console.log('Active element:', activeElement);
+          console.log('Active element tag:', activeElement.tagName);
+          console.log('Active element type:', activeElement.type);
+          console.log('Active element name:', activeElement.name);
+          console.log('Active element value:', activeElement.value);
+          
+          // Check all form data
+          const formData = new FormData(form);
+          console.log('Form data entries:');
+          for (let [key, value] of formData.entries()) {
+            console.log(`  ${key}: ${value}`);
+          }
+          
+          // Ensure action is set
+          if (!formData.has('action')) {
+            console.log('WARNING: No action parameter found!');
+            // Try to set it from the active button
+            if (activeElement && activeElement.name === 'action') {
+              console.log('Adding action from active button:', activeElement.value);
+              const actionInput = document.createElement('input');
+              actionInput.type = 'hidden';
+              actionInput.name = 'action';
+              actionInput.value = activeElement.value;
+              form.appendChild(actionInput);
+            }
+          }
+          
+          console.log('============================');
+          
+          // Show loading state
+          const submitBtn = activeElement;
+          if (submitBtn && submitBtn.type === 'submit' && !submitBtn.disabled) {
+            showLoadingState(submitBtn);
+          }
+        });
+
+        // Add click handlers to buttons for additional debugging
+        const buttons = form.querySelectorAll('button[type="submit"]');
+        buttons.forEach(button => {
+          button.addEventListener('click', function(e) {
+            console.log('Button clicked - Name:', this.name, 'Value:', this.value);
+          });
+        });
+      }
+    });
+
+    function showLoadingState(button) {
+      console.log('Showing loading state for button:', button.value);
+      const btnText = button.querySelector('.btn-text');
+      const btnIcon = button.querySelector('.btn-icon');
+      
+      if (btnText && btnIcon) {
+        btnIcon.innerHTML = '<span class="spinner"></span>';
+        btnText.textContent = 'Processing...';
+      }
+      
+      button.disabled = true;
+    }
+
+    function copyUpiId(button) {
+      const upiId = button.getAttribute('data-copy');
+      
+      if (!upiId || upiId === 'Not configured') {
+        console.log('No UPI ID to copy');
+        return;
+      }
+      
+      console.log('Copying UPI ID:', upiId);
+      
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(upiId).then(() => {
+          showCopySuccess(button);
+        }).catch(() => {
+          fallbackCopyTextToClipboard(upiId, button);
+        });
+      } else {
+        fallbackCopyTextToClipboard(upiId, button);
+      }
+    }
+
+    function fallbackCopyTextToClipboard(text, button) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        showCopySuccess(button);
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+      }
+      
+      document.body.removeChild(textArea);
+    }
+
+    function showCopySuccess(button) {
+      const originalContent = button.innerHTML;
+      button.innerHTML = '✅';
+      button.style.background = '#22c55e';
+      button.style.color = '#fff';
+      button.style.borderColor = '#22c55e';
+      
+      setTimeout(() => {
+        button.innerHTML = originalContent;
+        button.style.background = '';
+        button.style.color = '';
+        button.style.borderColor = '';
+      }, 2000);
+    }
+  </script>
+
+</div>

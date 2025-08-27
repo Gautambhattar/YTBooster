@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Join YT Booster - YouTube Growth Platform</title>
+  
+  <style>
+    :root {
+      --primary-color: #0dcaf0;
+      --primary-dark: #0bb5d6;
+      --secondary-color: #20c997;
+      --background-dark: #1e1e2f;
+      --surface-dark: #2a2a3d;
+      --surface-light: #333347;
+      --text-primary: #f0f0f5;
+      --text-secondary: #9ca3af;
+      --border-color: #444;
+      --success-color: #22c55e;
+      --warning-color: #f59e0b;
+      --error-color: #ef4444;
+      --admin-color: #dc2626;
+      --admin-secondary: #ea580c;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, var(--background-dark) 0%, #1a1a2e 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .signup-container {
+      background: var(--surface-dark);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 450px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .signup-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    /* Logo Section */
+    .logo-section {
+      margin-bottom: 2rem;
+    }
+
+    .logo-section h1 {
+      color: var(--primary-color);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo-section p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    /* 🔧 Admin Referral Alert */
+    .admin-referral-alert {
+      background: linear-gradient(135deg, rgba(220, 38, 38, 0.15), rgba(234, 88, 12, 0.15));
+      border: 2px solid var(--admin-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 5px rgba(220, 38, 38, 0.3); }
+      to { box-shadow: 0 0 20px rgba(220, 38, 38, 0.6); }
+    }
+
+    .admin-referral-alert::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--admin-color), var(--admin-secondary));
+    }
+
+    .admin-badge {
+      background: linear-gradient(135deg, var(--admin-color), var(--admin-secondary));
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+
+    .referral-message {
+      color: var(--text-primary);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .referral-bonus {
+      color: var(--success-color);
+      font-weight: 700;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .bonus-icon {
+      font-size: 1.5rem;
+      animation: bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+
+    /* Regular Referral Alert */
+    .regular-referral-alert {
+      background: rgba(13, 202, 240, 0.1);
+      border: 1px solid var(--primary-color);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .regular-badge {
+      background: var(--primary-color);
+      color: #000;
+      padding: 0.25rem 0.75rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
+
+    /* Form Styling */
+    .signup-form {
+      text-align: left;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 1rem;
+      background: var(--background-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.1);
+      background: var(--surface-light);
+    }
+
+    .form-group input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+
+    /* Special styling for referral code input */
+    .referral-input {
+      border-color: var(--admin-color) !important;
+      background: rgba(220, 38, 38, 0.05) !important;
+    }
+
+    .referral-input:focus {
+      border-color: var(--admin-color) !important;
+      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+    }
+
+    /* Submit Button */
+    .signup-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #000;
+      border: none;
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .signup-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(13, 202, 240, 0.4);
+    }
+
+    .signup-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Admin signup button styling */
+    .signup-btn.admin-signup {
+      background: linear-gradient(135deg, var(--admin-color), var(--admin-secondary));
+      color: white;
+    }
+
+    .signup-btn.admin-signup:hover {
+      box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+    }
+
+    /* Login Link */
+    .login-link {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .login-link a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .login-link a:hover {
+      color: var(--primary-dark);
+      text-decoration: underline;
+    }
+
+    /* Alert Messages */
+    .alert {
+      padding: 1rem;
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--error-color);
+      color: var(--error-color);
+    }
+
+    .alert-success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid var(--success-color);
+      color: var(--success-color);
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--warning-color);
+      color: var(--warning-color);
+    }
+
+    /* Hidden Elements */
+    .hidden {
+      display: none;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      .signup-container {
+        padding: 2rem;
+        margin: 1rem;
+      }
+
+      .logo-section h1 {
+        font-size: 1.5rem;
+      }
+
+      .admin-referral-alert {
+        padding: 1rem;
+      }
+
+      .referral-bonus {
+        font-size: 1.1rem;
+      }
+    }
+
+    /* Loading Animation */
+    .loading {
+      position: relative;
+    }
+
+    .loading::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      margin: -10px 0 0 -10px;
+      border: 2px solid transparent;
+      border-top: 2px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <h1>🚀 YT Booster</h1>
+      <p>Join the Ultimate YouTube Growth Platform</p>
+    </div>
+
+    <!-- 🔧 Admin Referral Alert (shown when adminref parameter is present) -->
+    <div th:if="${referralValid and referralType == 'ADMIN'}" class="admin-referral-alert">
+      <div class="admin-badge">👑 Exclusive Admin Invitation</div>
+      <div class="referral-message">
+        You've been personally invited by 
+        <strong th:text="${referrerName ?: 'an admin'}">Admin User</strong>!
+      </div>
+      <div class="referral-bonus">
+        <span class="bonus-icon">🎁</span>
+        Get $<span th:text="${bonusAmount ?: '10.00'}">10.00</span> Welcome Bonus!
+      </div>
+    </div>
+
+    <!-- Regular Referral Alert (for future regular referrals) -->
+    <div th:if="${referralValid and referralType == 'REGULAR'}" class="regular-referral-alert">
+      <div class="regular-badge">🔗 Referral Bonus</div>
+      <div style="color: var(--primary-color); font-weight: 600;">
+        Get $<span th:text="${bonusAmount ?: '5.00'}">5.00</span> bonus when you join!
+      </div>
+    </div>
+
+    <!-- Error Messages -->
+    <div th:if="${error}" class="alert alert-error">
+      <span>❌</span>
+      <span th:text="${error}">Error message</span>
+    </div>
+
+    <!-- Success Messages -->
+    <div th:if="${success}" class="alert alert-success">
+      <span>✅</span>
+      <span th:text="${success}">Success message</span>
+    </div>
+
+    <!-- Invalid Referral Warning -->
+    <div th:if="${!referralValid and (adminReferralCode != null or referralCode != null)}" class="alert alert-warning">
+      <span>⚠️</span>
+      <span>Invalid or expired referral code. You can still register normally.</span>
+    </div>
+
+    <!-- Signup Form -->
+    <form th:action="@{/register}" th:object="${user}" method="post" class="signup-form">
+      <!-- Hidden referral code fields -->
+      <input type="hidden" name="adminref" th:value="${adminReferralCode}" />
+      <input type="hidden" name="ref" th:value="${referralCode}" />
+
+      <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input type="text" 
+               id="firstName" 
+               th:field="*{firstName}" 
+               placeholder="Enter your first name" 
+               required/>
+      </div>
+
+      <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input type="text" 
+               id="lastName" 
+               th:field="*{lastName}" 
+               placeholder="Enter your last name" 
+               required/>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" 
+               id="email" 
+               th:field="*{email}" 
+               placeholder="Enter your email address" 
+               required/>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" 
+               id="password" 
+               th:field="*{password}" 
+               placeholder="Create a strong password" 
+               required 
+               minlength="6"/>
+      </div>
+
+      <!-- 🔧 Referral Code Input (optional, shown when no referral detected) -->
+      <div class="form-group" th:if="${!referralValid}">
+        <label for="referralCodeInput">Referral Code (Optional)</label>
+        <input type="text" 
+               id="referralCodeInput" 
+               name="referralCodeManual"
+               placeholder="Enter referral code if you have one"
+               th:class="${adminReferralCode != null or referralCode != null ? 'referral-input' : ''}"
+               th:value="${adminReferralCode != null ? adminReferralCode : referralCode}"/>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" 
+              id="signupBtn"
+              th:class="${referralValid and referralType == 'ADMIN' ? 'signup-btn admin-signup' : 'signup-btn'}">
+        <span th:if="${referralValid and referralType == 'ADMIN'}">👑 Join with Admin Bonus</span>
+        <span th:if="${referralValid and referralType == 'REGULAR'}">🎁 Join with Bonus</span>
+        <span th:if="${!referralValid}">🚀 Create Account</span>
+      </button>
+    </form>
+
+    <!-- Login Link -->
+    <div class="login-link">
+      Already have an account? <a th:href="@{/login}">Login here</a>
+    </div>
+  </div>
+
+  <!-- JavaScript for Enhanced UX -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.querySelector('.signup-form');
+      const submitBtn = document.getElementById('signupBtn');
+      const inputs = form.querySelectorAll('input[required]');
+
+      // Real-time form validation
+      inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+          validateField(this);
+        });
+
+        input.addEventListener('input', function() {
+          if (this.value.trim()) {
+            this.style.borderColor = 'var(--success-color)';
+          }
+        });
+      });
+
+      // Form submission handling
+      form.addEventListener('submit', function(e) {
+        let isValid = true;
+
+        // Validate all fields
+        inputs.forEach(input => {
+          if (!validateField(input)) {
+            isValid = false;
+          }
+        });
+
+        if (!isValid) {
+          e.preventDefault();
+          showNotification('Please fill in all required fields correctly.', 'error');
+          return;
+        }
+
+        // Show loading state
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Creating Account...';
+      });
+
+      // URL parameter detection
+      const urlParams = new URLSearchParams(window.location.search);
+      const adminRef = urlParams.get('adminref');
+      const regularRef = urlParams.get('ref');
+
+      if (adminRef) {
+        console.log('Admin referral detected:', adminRef);
+        // Add special admin styling
+        document.body.style.setProperty('--primary-accent', 'var(--admin-color)');
+      } else if (regularRef) {
+        console.log('Regular referral detected:', regularRef);
+      }
+
+      // Auto-hide alerts after 10 seconds
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(alert => {
+        setTimeout(() => {
+          alert.style.opacity = '0';
+          alert.style.transform = 'translateY(-20px)';
+          setTimeout(() => {
+            alert.remove();
+          }, 300);
+        }, 10000);
+      });
+    });
+
+    function validateField(field) {
+      const value = field.value.trim();
+      
+      if (!value) {
+        field.style.borderColor = 'var(--error-color)';
+        return false;
+      }
+
+      if (field.type === 'email' && !isValidEmail(value)) {
+        field.style.borderColor = 'var(--error-color)';
+        return false;
+      }
+
+      if (field.type === 'password' && value.length < 6) {
+        field.style.borderColor = 'var(--error-color)';
+        return false;
+      }
+
+      field.style.borderColor = 'var(--success-color)';
+      return true;
+    }
+
+    function isValidEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.className = `alert alert-${type}`;
+      notification.innerHTML = `
+        <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️'}</span>
+        <span>${message}</span>
+      `;
+      notification.style.position = 'fixed';
+      notification.style.top = '20px';
+      notification.style.right = '20px';
+      notification.style.zIndex = '9999';
+      notification.style.maxWidth = '300px';
+
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
+    }
+
+    // AJAX referral code validation (optional enhancement)
+    function validateReferralCode(code, type = 'admin') {
+      if (!code.trim()) return;
+
+      fetch(`/api/validate-referral?code=${encodeURIComponent(code)}&type=${type}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.valid) {
+            showNotification(`Valid ${type} referral! You'll get $${data.bonusAmount} bonus.`, 'success');
+          } else {
+            showNotification('Invalid referral code.', 'warning');
+          }
+        })
+        .catch(error => {
+          console.error('Error validating referral:', error);
+        });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,486 @@
+<div th:fragment="rechargeHistory">
+    
+    <!-- Header Section -->
+    <div class="recharge-header">
+        <h2>🧾 Recharge History</h2>
+        <p class="header-subtitle">Track all your wallet recharge transactions</p>
+    </div>
+
+    <!-- Recharge History Table -->
+    <div class="recharge-card">
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="recharge-table">
+                    <thead>
+                        <tr>
+                            <th class="col-number">#</th>
+                            <th class="col-amount">Amount</th>
+                            <th class="col-date">Date & Time</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-transaction">Transaction ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item, iterStat : ${rechargeHistory}" class="table-row">
+                            <td class="row-number">
+                                <span class="number-badge" th:text="${iterStat.count}">1</span>
+                            </td>
+                            <td class="amount-cell">
+                                <span class="amount-value" th:text="'₹' + ${item.amount}">₹100</span>
+                            </td>
+                            <td class="date-cell">
+                                <div class="date-info">
+                                    <span class="date-primary" th:text="${#temporals.format(item.createdAt, 'dd MMM yyyy')}">18 Aug 2025</span>
+                                    <span class="date-time" th:text="${#temporals.format(item.createdAt, 'HH:mm')}">10:00</span>
+                                </div>
+                            </td>
+                            <td class="status-cell">
+                                <span class="status-badge" 
+                                      th:text="${item.status}"
+                                      th:classappend="${item.status=='Success' ? 'status-success' : item.status=='Failed' ? 'status-failed' : 'status-pending'}">
+                                    Success
+                                </span>
+                            </td>
+                            <td class="transaction-cell">
+                                <span class="transaction-id" th:text="${item.utr}">TXN123456</span>
+                                <button class="copy-txn-btn" th:attr="data-txn=${item.utr}" onclick="copyTransaction(this)" title="Copy Transaction ID">
+                                    📋
+                                </button>
+                            </td>
+                        </tr>
+                        
+                        <!-- Empty State -->
+                        <tr th:if="${#lists.isEmpty(rechargeHistory)}" class="empty-row">
+                            <td colspan="5" class="empty-cell">
+                                <div class="empty-state">
+                                    <div class="empty-icon">💳</div>
+                                    <h3>No Recharge History</h3>
+                                    <p>You haven't made any recharge transactions yet.</p>
+                                    <a th:href="@{/dashboard(tab='recharge')}" class="recharge-now-btn">
+                                        💰 Recharge Now
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* 🎨 Dashboard Theme CSS Variables */
+        :root {
+            --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            --primary-color: #0dcaf0;
+            --secondary-color: #20c997;
+            --background-dark: #1e1e2f;
+            --surface-dark: #2a2a3d;
+            --surface-light: #333347;
+            --text-primary: #f0f0f5;
+            --text-secondary: #9ca3af;
+            --border-color: #444;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        /* Header Section */
+        .recharge-header {
+            margin-bottom: 2rem;
+            font-family: var(--font-primary);
+        }
+
+        .recharge-header h2 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-family: var(--font-primary);
+        }
+
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin: 0;
+            font-family: var(--font-primary);
+        }
+
+        /* Card Container */
+        .recharge-card {
+            background: var(--surface-dark);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+            overflow: hidden;
+            font-family: var(--font-primary);
+        }
+
+        /* Table Container */
+        .table-container {
+            padding: 0;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            background: var(--surface-dark);
+        }
+
+        /* Table Styling */
+        .recharge-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+        }
+
+        /* Table Header */
+        .recharge-table thead th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #000;
+            padding: 1.25rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .col-number { width: 8%; }
+        .col-amount { width: 15%; }
+        .col-date { width: 25%; }
+        .col-status { width: 20%; }
+        .col-transaction { width: 32%; }
+
+        /* Table Body */
+        .recharge-table tbody td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        .table-row {
+            transition: all 0.3s ease;
+        }
+
+        .table-row:hover {
+            background: rgba(13, 202, 240, 0.05);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Row Number */
+        .row-number {
+            text-align: center;
+        }
+
+        .number-badge {
+            background: rgba(13, 202, 240, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        /* Amount Cell */
+        .amount-cell {
+            text-align: left;
+        }
+
+        .amount-value {
+            color: var(--success-color);
+            font-weight: 700;
+            font-size: 1.1rem;
+            font-family: var(--font-primary);
+        }
+
+        /* Date Cell */
+        .date-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .date-primary {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .date-time {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+
+        /* Status Cell */
+        .status-cell {
+            text-align: center;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            min-width: 80px;
+        }
+
+        .status-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-failed {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Transaction Cell */
+        .transaction-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .transaction-id {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            background: rgba(13, 202, 240, 0.1);
+            color: var(--primary-color);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(13, 202, 240, 0.3);
+            flex: 1;
+        }
+
+        .copy-txn-btn {
+            background: var(--surface-light);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            min-width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copy-txn-btn:hover {
+            background: var(--primary-color);
+            color: #000;
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        /* Empty State */
+        .empty-row td {
+            border: none;
+            padding: 4rem 2rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .recharge-now-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #000;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .recharge-now-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(13, 202, 240, 0.4);
+            text-decoration: none;
+            color: #000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .recharge-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .recharge-table {
+                font-size: 0.8rem;
+            }
+
+            .recharge-table thead th,
+            .recharge-table tbody td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .date-info {
+                align-items: flex-start;
+            }
+
+            .transaction-cell {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .transaction-id {
+                width: 100%;
+                text-align: center;
+            }
+
+            .copy-txn-btn {
+                align-self: flex-end;
+            }
+
+            .status-badge {
+                font-size: 0.7rem;
+                padding: 0.4rem 0.8rem;
+                min-width: 70px;
+            }
+
+            .amount-value {
+                font-size: 1rem;
+            }
+
+            .empty-state {
+                padding: 2rem 1rem;
+            }
+
+            .empty-icon {
+                font-size: 3rem;
+            }
+
+            .empty-state h3 {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .col-number { width: 10%; }
+            .col-amount { width: 20%; }
+            .col-date { width: 25%; }
+            .col-status { width: 20%; }
+            .col-transaction { width: 25%; }
+
+            .recharge-table thead th {
+                font-size: 0.7rem;
+                padding: 1rem 0.25rem;
+            }
+
+            .recharge-table tbody td {
+                padding: 0.75rem 0.25rem;
+            }
+
+            .date-primary {
+                font-size: 0.8rem;
+            }
+
+            .date-time {
+                font-size: 0.7rem;
+            }
+
+            .transaction-id {
+                font-size: 0.7rem;
+                padding: 0.4rem 0.5rem;
+            }
+        }
+    </style>
+
+    <!-- JavaScript for Copy Functionality -->
+    <script>
+        function copyTransaction(button) {
+            const txnId = button.getAttribute('data-txn');
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(txnId).then(() => {
+                    showCopySuccess(button);
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(txnId, button);
+                });
+            } else {
+                fallbackCopyTextToClipboard(txnId, button);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text, button) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopySuccess(button);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showCopySuccess(button) {
+            const originalContent = button.innerHTML;
+            button.innerHTML = '✅';
+            button.style.background = '#22c55e';
+            button.style.color = '#fff';
+            button.style.borderColor = '#22c55e';
+            
+            setTimeout(() => {
+                button.innerHTML = originalContent;
+                button.style.background = '';
+                button.style.color = '';
+                button.style.borderColor = '';
+            }, 2000);
+        }
+    </script>
+
+</div>

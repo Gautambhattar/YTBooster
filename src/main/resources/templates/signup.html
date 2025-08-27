@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Account - YouTube Booster</title>
+  <style>
+    /* 🎨 Dashboard Theme CSS Variables */
+    :root {
+      --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --primary-color: #0dcaf0;
+      --secondary-color: #20c997;
+      --background-dark: #1e1e2f;
+      --surface-dark: #2a2a3d;
+      --surface-light: #333347;
+      --text-primary: #f0f0f5;
+      --text-secondary: #9ca3af;
+      --border-color: #444;
+      --success-color: #22c55e;
+      --warning-color: #f59e0b;
+      --error-color: #ef4444;
+      --gradient-primary: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background: var(--background-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-image: 
+        radial-gradient(circle at 20% 50%, rgba(13, 202, 240, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(32, 201, 151, 0.1) 0%, transparent 50%);
+    }
+
+    .signup-container {
+      background: var(--surface-dark);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .signup-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--gradient-primary);
+    }
+
+    .signup-container::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: var(--gradient-primary);
+      border-radius: 18px;
+      z-index: -1;
+      opacity: 0.1;
+    }
+
+    h2 {
+      margin-bottom: 2rem;
+      color: var(--text-primary);
+      font-size: 1.8rem;
+      font-weight: 600;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .form-label {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      z-index: 2;
+    }
+
+    input {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      background: var(--background-dark);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: var(--font-primary);
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.1);
+      background: var(--surface-light);
+    }
+
+    input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+
+    /* Input without icons */
+    input.no-icon {
+      padding-left: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 1rem 1.5rem;
+      background: var(--gradient-primary);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: var(--font-primary);
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(13, 202, 240, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .login-link {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .login-link a {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    .login-link a:hover {
+      color: var(--secondary-color);
+    }
+
+    .error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--error-color);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .error::before {
+      content: '⚠️';
+      font-size: 1.1rem;
+    }
+
+    .brand-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Loading Animation */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 0.5rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 480px) {
+      body {
+        padding: 15px;
+      }
+
+      .signup-container {
+        padding: 2rem;
+      }
+
+      .brand-title {
+        font-size: 1.8rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      input {
+        padding: 0.9rem 0.9rem 0.9rem 2.8rem;
+      }
+
+      button {
+        padding: 0.9rem 1.2rem;
+      }
+    }
+
+    /* Optional fields styling */
+    .optional-field {
+      opacity: 0.8;
+    }
+
+    .optional-field input {
+      border-style: dashed;
+    }
+
+    .optional-field .form-label::after {
+      content: ' (optional)';
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-weight: 400;
+    }
+  </style>
+</head>
+<body>
+<div class="signup-container">
+  <div class="brand-title">YouTube Booster</div>
+  <div class="brand-subtitle">Grow your channel faster</div>
+  
+  <h2>Create Your Account</h2>
+
+  <!-- Show error if exists -->
+  <div th:if="${error}" class="error" th:text="${error}"></div>
+
+  <form th:action="@{/signup}" th:object="${userDto}" method="post" id="signupForm">
+    <div class="form-group">
+      <label class="form-label">Full Name</label>
+      <div class="input-wrapper">
+        <span class="input-icon">👤</span>
+        <input type="text" th:field="*{name}" placeholder="Enter your full name" required/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <div class="input-wrapper">
+        <span class="input-icon">📧</span>
+        <input type="email" th:field="*{email}" placeholder="Enter your email" required/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <div class="input-wrapper">
+        <span class="input-icon">🔒</span>
+        <input type="password" th:field="*{password}" placeholder="Create a strong password" required minlength="6"/>
+      </div>
+    </div>
+
+    <div class="form-group optional-field">
+      <label class="form-label">Referral Code</label>
+      <div class="input-wrapper">
+        <span class="input-icon">🎁</span>
+        <input type="text" name="referralCode" placeholder="Enter referral code"/>
+      </div>
+    </div>
+
+    <div class="form-group optional-field">
+      <label class="form-label">Admin Key</label>
+      <div class="input-wrapper">
+        <span class="input-icon">🔑</span>
+        <input type="text" name="key" placeholder="Enter admin key"/>
+      </div>
+    </div>
+
+    <button type="submit" id="submitBtn">
+      <span class="btn-text">Create Account</span>
+    </button>
+  </form>
+
+  <div class="login-link">
+    Already have an account? <a th:href="@{/login}">Sign In</a>
+  </div>
+</div>
+
+<script type="text/javascript">
+  // Enhanced form handling
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('signupForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        // Show loading state
+        const btnText = submitBtn.querySelector('.btn-text');
+        if (btnText) {
+          submitBtn.innerHTML = '<span class="spinner"></span>Creating Account...';
+          submitBtn.disabled = true;
+        }
+      });
+    }
+
+    // Add some interactive feedback
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('focus', function() {
+        this.parentElement.style.transform = 'scale(1.02)';
+      });
+      
+      input.addEventListener('blur', function() {
+        this.parentElement.style.transform = 'scale(1)';
+      });
+    });
+  });
+
+  // Tawk.to Chat Widget
+  var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+  (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/68ac9733e458d3192c415c8a/1j3h2t8mb';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+  })();
+</script>
+</body>
+</html>

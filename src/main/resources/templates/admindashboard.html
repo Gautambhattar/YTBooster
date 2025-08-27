@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YT Booster - Admin Panel</title>
+  <style>
+    body { 
+      font-family: "Segoe UI", sans-serif; 
+      display: flex; 
+      margin: 0; 
+      background: #1e1e2f; 
+      color: #f0f0f5; 
+    }
+    
+    .sidebar { 
+      width: 280px; 
+      background: #151521; 
+      padding: 1rem; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.75rem;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+    
+    .sidebar h2 { 
+      color: #0dcaf0; 
+      text-align: center; 
+      margin-bottom: 0.5rem; 
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    /* 🔧 UPDATED: User Profile Section with Referral Code */
+    .user-profile {
+      background: linear-gradient(135deg, #2a2a3d 0%, #1e1e2f 100%);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      border: 1px solid #333;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: visible;
+      flex-shrink: 0;
+    }
+
+    .user-profile::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #0dcaf0, #20c997);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .user-avatar {
+      width: 55px;
+      height: 55px;
+      background: linear-gradient(135deg, #0dcaf0, #20c997);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 0.75rem auto;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #000;
+      box-shadow: 0 4px 12px rgba(13, 202, 240, 0.3);
+    }
+
+    .user-info {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .user-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #f0f0f5;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      background: rgba(13, 202, 240, 0.1);
+      color: #0dcaf0;
+      padding: 0.2rem 0.6rem;
+      border-radius: 15px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      display: inline-block;
+      border: 1px solid rgba(13, 202, 240, 0.3);
+      align-self: center;
+    }
+
+    /* 🔧 NEW: Referral Code Display */
+    .user-referral {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      color: #f59e0b;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .user-referral:hover {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: #f59e0b;
+    }
+
+    .referral-icon {
+      font-size: 0.8rem;
+    }
+
+    .user-wallet {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 8px;
+      padding: 0.4rem 0.6rem;
+      color: #22c55e;
+      font-size: 0.85rem;
+      font-weight: 600;
+      min-height: 30px;
+    }
+
+    .wallet-icon {
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    /* Navigation Links */
+    .nav-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    .nav-section h3 {
+      color: #9ca3af;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0.75rem 0 0.4rem 0;
+      padding-left: 0.5rem;
+    }
+    
+    .sidebar a { 
+      text-decoration: none; 
+      padding: 0.75rem 0.9rem; 
+      border-radius: 10px; 
+      color: #ddd; 
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer; 
+      transition: all 0.3s ease;
+      font-weight: 500;
+      font-size: 0.9rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sidebar a::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .sidebar a:hover::before {
+      left: 100%;
+    }
+    
+    .sidebar a:hover, .sidebar a.active { 
+      background: linear-gradient(135deg, #0dcaf0, #20c997); 
+      color: #000; 
+      transform: translateX(5px);
+      box-shadow: 0 4px 12px rgba(13, 202, 240, 0.3);
+      font-weight: 600;
+    }
+
+    .nav-icon {
+      width: 18px;
+      text-align: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    /* Logout Button */
+    .logout-btn {
+      margin-top: auto;
+      background: rgba(239, 68, 68, 0.1) !important;
+      color: #ef4444 !important;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .logout-btn:hover {
+      background: #ef4444 !important;
+      color: #fff !important;
+      transform: translateX(5px);
+    }
+    
+    .main { 
+      flex: 1; 
+      margin-left: 280px;
+      padding: 2rem; 
+      overflow-y: auto; 
+      background: #1e1e2f;
+      width: calc(100% - 280px);
+    }
+    
+    .card { 
+      background: #2a2a3d; 
+      border-radius: 12px; 
+      padding: 1.5rem; 
+      margin-bottom: 2rem; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      border: 1px solid #333;
+    }
+    
+    .card h3 { 
+      margin-bottom: 1rem; 
+      color: #0dcaf0; 
+    }
+    
+    .alert { 
+      padding: 1rem; 
+      border-radius: 8px; 
+      margin-bottom: 1rem; 
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .alert-success { 
+      background: rgba(13, 202, 240, 0.1); 
+      border: 1px solid #0dcaf0; 
+      color: #0dcaf0; 
+    }
+    
+    .alert-danger { 
+      background: rgba(220, 53, 69, 0.1); 
+      border: 1px solid #dc3545; 
+      color: #dc3545; 
+    }
+
+    /* Dashboard Cards Grid */
+    .dashboard-grid {
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+      gap: 1.5rem; 
+      margin-top: 2rem;
+    }
+
+    .dashboard-card {
+      background: #2a2a3d; 
+      padding: 1.5rem; 
+      border-radius: 12px; 
+      text-decoration: none; 
+      color: inherit; 
+      border: 1px solid #444;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .dashboard-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #0dcaf0, #20c997);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .dashboard-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .dashboard-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      border-color: #0dcaf0;
+    }
+
+    .dashboard-card h4 {
+      color: #0dcaf0; 
+      margin: 0 0 0.5rem 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .dashboard-card p {
+      margin: 0; 
+      font-size: 0.9rem;
+      color: #9ca3af;
+      line-height: 1.4;
+    }
+
+    /* 🆕 User List Styles - Dark Theme Integration */
+    .table {
+      background: #2a2a3d;
+      color: #f0f0f5;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table th {
+      background: #1e1e2f !important;
+      color: #0dcaf0;
+      border: none;
+      font-weight: 600;
+      padding: 1rem 0.75rem;
+    }
+
+    .table td {
+      background: #2a2a3d;
+      border-color: #444;
+      padding: 0.75rem;
+      vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+      background: #333 !important;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.4rem 0.6rem;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.6rem;
+      font-size: 0.8rem;
+    }
+
+    .btn-outline-primary {
+      color: #0dcaf0;
+      border: 1px solid #0dcaf0;
+    }
+
+    .btn-outline-primary:hover {
+      background: #0dcaf0;
+      color: #000;
+    }
+
+    .btn-outline-success {
+      color: #22c55e;
+      border: 1px solid #22c55e;
+    }
+
+    .btn-outline-success:hover {
+      background: #22c55e;
+      color: #000;
+    }
+
+    .btn-outline-warning {
+      color: #f59e0b;
+      border: 1px solid #f59e0b;
+    }
+
+    .btn-outline-warning:hover {
+      background: #f59e0b;
+      color: #000;
+    }
+
+    .btn-outline-danger {
+      color: #ef4444;
+      border: 1px solid #ef4444;
+    }
+
+    .btn-outline-danger:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .form-control, .form-select {
+      background: #1e1e2f;
+      border: 1px solid #444;
+      color: #f0f0f5;
+      border-radius: 6px;
+    }
+
+    .form-control:focus, .form-select:focus {
+      background: #1e1e2f;
+      border-color: #0dcaf0;
+      color: #f0f0f5;
+      box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+    }
+
+    .pagination .page-link {
+      background: #2a2a3d;
+      border: 1px solid #444;
+      color: #f0f0f5;
+    }
+
+    .pagination .page-link:hover {
+      background: #0dcaf0;
+      border-color: #0dcaf0;
+      color: #000;
+    }
+
+    .pagination .page-item.active .page-link {
+      background: #0dcaf0;
+      border-color: #0dcaf0;
+      color: #000;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        position: relative;
+        height: auto;
+      }
+
+      .main {
+        order: 1;
+        padding: 1rem;
+        margin-left: 0;
+        width: 100%;
+      }
+
+      .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        text-align: left;
+      }
+
+      .user-avatar {
+        width: 50px;
+        height: 50px;
+        margin: 0;
+      }
+
+      .user-info {
+        text-align: left;
+        flex: 1;
+        gap: 0.25rem;
+      }
+
+      .user-name {
+        font-size: 0.95rem;
+      }
+
+      .user-role {
+        font-size: 0.65rem;
+        align-self: flex-start;
+      }
+
+      .user-referral {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+      }
+
+      .user-wallet {
+        margin-left: auto;
+        font-size: 0.8rem;
+        padding: 0.3rem 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>🚀 YT Booster</h2>
+    
+    <!-- 🔧 UPDATED: User Profile Section with Referral Code -->
+    <div class="user-profile">
+      <div class="user-avatar">
+        <span th:text="${adminFullName != null ? #strings.substring(adminFullName, 0, 1) : (username != null ? #strings.substring(username, 0, 1) : 'A')}">A</span>
+      </div>
+      <div class="user-info">
+        <div class="user-name" th:text="${adminFullName != null ? adminFullName : username}">Admin User</div>
+        <div class="user-role" th:text="${userRole}">ADMIN</div>
+        
+        <!-- 🔧 NEW: Admin Referral Code Display -->
+        <div class="user-referral" th:if="${adminReferralCode != null}" 
+             th:attr="data-referral=${adminReferralCode}" 
+             onclick="copyReferralCode(this)" 
+             title="Click to copy referral code">
+          <span class="referral-icon">🔗</span>
+          <span th:text="${adminReferralCode}">REF123</span>
+        </div>
+        
+        <div class="user-wallet" th:if="${walletBalance != null}">
+          <span class="wallet-icon">💰</span>
+          <span>₹<span th:text="${#numbers.formatDecimal(walletBalance, 1, 2)}">0.00</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Section -->
+    <div class="nav-section">
+      <h3>Management</h3>
+      <a th:href="@{/admindashboard(tab='orders')}" th:classappend="${tab}=='orders' ? 'active'">
+        <span class="nav-icon">📦</span>
+        <span>Orders Management</span>
+      </a>
+      <a th:href="@{/admindashboard(tab='recharges')}" th:classappend="${tab}=='recharges' ? 'active'">
+        <span class="nav-icon">💳</span>
+        <span>Recharge History</span>
+      </a>
+      <!-- 🆕 NEW: Users Management Tab -->
+      <a th:href="@{/admindashboard(tab='users')}" th:classappend="${tab}=='users' ? 'active'">
+        <span class="nav-icon">👥</span>
+        <span>Users Management</span>
+      </a>
+      <a th:href="@{/admindashboard(tab='payment-methods')}" th:classappend="${tab}=='payment-methods' ? 'active'">
+        <span class="nav-icon">🏦</span>
+        <span>Payment Methods</span>
+      </a>
+      <a th:href="@{/admindashboard(tab='wallet')}" th:classappend="${tab}=='wallet' ? 'active'">
+        <span class="nav-icon">👛</span>
+        <span>Wallet Balance</span>
+      </a>
+    </div>
+
+    <!-- System Section -->
+    <div class="nav-section">
+      <h3>Account</h3>
+      <a href="/logout" class="logout-btn">
+        <span class="nav-icon">🚪</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main" th:switch="${tab}">
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success">
+      <span>✅</span>
+      <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger">
+      <span>❌</span>
+      <span th:text="${errorMessage}"></span>
+    </div>
+
+    <div th:case="'orders'">
+      <div th:replace="admintabs/orders :: orders"></div>
+    </div>
+    <div th:case="'recharges'">
+      <div th:replace="admintabs/recharges :: recharges"></div>
+    </div>
+    <div th:case="'wallet'">
+      <div th:replace="admintabs/wallet :: wallet"></div>
+    </div>
+    <div th:case="'payment-methods'">
+      <div th:replace="admintabs/payment-methods :: payment-methods"></div>
+    </div>
+    <!-- 🆕 NEW: Users Management Tab -->
+    <div th:case="'users'">
+      <div th:replace="admintabs/UserList :: userlist"></div>
+    </div>
+    <div th:case="*">
+      <div class="card">
+        <h2>🎯 Welcome to Admin Dashboard</h2>
+        <p>Manage your YouTube booster service from this central hub.</p>
+        <div class="dashboard-grid">
+          <a th:href="@{/admindashboard(tab='orders')}" class="dashboard-card">
+            <h4>📦 Orders Management</h4>
+            <p>View and manage customer orders, update order status, and track progress</p>
+          </a>
+          <a th:href="@{/admindashboard(tab='users')}" class="dashboard-card">
+            <h4>👥 Users Management</h4>
+            <p>Manage user accounts, view user details, and handle authentication status</p>
+          </a>
+          <a th:href="@{/admindashboard(tab='payment-methods')}" class="dashboard-card">
+            <h4>🏦 Payment Methods</h4>
+            <p>Upload and manage UPI QR codes for customer payments</p>
+          </a>
+          <a th:href="@{/admindashboard(tab='wallet')}" class="dashboard-card">
+            <h4>👛 Wallet Balance</h4>
+            <p>Check your current wallet balance and transaction history</p>
+          </a>
+          <a th:href="@{/admindashboard(tab='recharges')}" class="dashboard-card">
+            <h4>💳 Recharge History</h4>
+            <p>View customer recharge history and payment transactions</p>
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- JavaScript for Copy Functionality and User Management -->
+  <script type="text/javascript">
+    // Copy referral code functionality
+    function copyReferralCode(element) {
+      const referralCode = element.getAttribute('data-referral');
+      
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(referralCode).then(() => {
+          showCopySuccess(element);
+        }).catch(() => {
+          fallbackCopyTextToClipboard(referralCode, element);
+        });
+      } else {
+        fallbackCopyTextToClipboard(referralCode, element);
+      }
+    }
+
+    function fallbackCopyTextToClipboard(text, element) {
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      textArea.style.top = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        showCopySuccess(element);
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+      }
+      
+      document.body.removeChild(textArea);
+    }
+
+    function showCopySuccess(element) {
+      const originalContent = element.innerHTML;
+      element.innerHTML = '<span class="referral-icon">✅</span><span>Copied!</span>';
+      element.style.background = 'rgba(34, 197, 94, 0.2)';
+      element.style.borderColor = '#22c55e';
+      element.style.color = '#22c55e';
+      
+      setTimeout(() => {
+        element.innerHTML = originalContent;
+        element.style.background = '';
+        element.style.borderColor = '';
+        element.style.color = '';
+      }, 2000);
+    }
+
+    // 🆕 User Management Functions (for UserList fragment)
+    function viewUser(userId) {
+      window.location.href = `/admindashboard/users/${userId}`;
+    }
+
+    function editUser(userId) {
+      window.location.href = `/admindashboard/users/${userId}/edit`;
+    }
+
+    function manageWallet(userId) {
+      const amount = prompt('Enter amount to add to wallet:');
+      if (amount && !isNaN(amount) && parseFloat(amount) > 0) {
+        fetch(`/admindashboard/users/${userId}/wallet/add`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ amount: parseFloat(amount) })
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message || data.error);
+          if (data.message) {
+            location.reload();
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while updating the wallet');
+        });
+      }
+    }
+
+    function deleteUser(userId) {
+      if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        fetch(`/admindashboard/users/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert(data.message || data.error);
+          if (data.message) {
+            location.reload();
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while deleting the user');
+        });
+      }
+    }
+
+    // Additional user management functions
+    function updateUserStatus(userId, status) {
+      fetch(`/admindashboard/users/${userId}/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: status })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          showAlert('success', data.message);
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          showAlert('error', data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        showAlert('error', 'An error occurred');
+      });
+    }
+
+    function showAlert(type, message) {
+      const alertDiv = document.createElement('div');
+      alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'}`;
+      alertDiv.innerHTML = `
+        <span>${type === 'success' ? '✅' : '❌'}</span>
+        <span>${message}</span>
+      `;
+      
+      const main = document.querySelector('.main');
+      main.insertBefore(alertDiv, main.firstChild);
+      
+      setTimeout(() => {
+        alertDiv.remove();
+      }, 3000);
+    }
+    
+    setInterval(function() {
+        fetch('/heartbeat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        }).catch(error => {
+            console.log('Heartbeat failed:', error);
+        });
+    }, 120000); // 2 minutes
+      
+  </script>
+  
+
+</body>
+</html>

@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>UPI Payment Methods Management</title>
+</head>
+<body>
+
+
+<div th:fragment="payment-methods">
+  <div class="payments-container">
+  
+  
+    
+    <!-- Header Section -->
+    <div class="page-header">
+      <h2>⚙️ UPI Payment Methods Management</h2>
+      <p>Manage your UPI payment settings and QR codes for customer transactions</p>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success">
+      <i class="icon-check"></i>
+      <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-error">
+      <i class="icon-error"></i>
+      <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Add/Edit Form Section -->
+    <div class="form-section">
+      <div class="form-header">
+        <h3 th:text="${(editMode != null and editMode) ? '✏️ Edit UPI Payment Method' : '➕ Add New UPI Payment Method'}">Add New UPI Payment Method</h3>
+      </div>
+
+      <!-- 🔧 FIXED: Use simple conditional URL building without nested expressions -->
+      <form th:action="${(editMode != null and editMode) ? ('/admin/upi-payments/' + upiForm.id + '/update') : '/admin/upi-payments/save'}" 
+            th:object="${upiForm}" 
+            method="post" 
+            enctype="multipart/form-data" 
+            class="payment-form">
+        
+        <!-- Hidden Fields -->
+        <input type="hidden" th:field="*{adminId}" />
+        <input type="hidden" th:field="*{id}" th:if="${editMode != null and editMode}" />
+
+        <div class="form-grid">
+          
+          <!-- UPI ID Field -->
+          <div class="form-group">
+            <label for="upiId" class="required">UPI ID</label>
+            <input type="text" 
+                   th:field="*{upiId}" 
+                   id="upiId"
+                   placeholder="example@paytm" 
+                   class="form-control"
+                   required>
+            <div th:if="${#fields.hasErrors('upiId')}" class="field-error">
+              <i class="icon-warning"></i>
+              <span th:errors="*{upiId}"></span>
+            </div>
+            <div th:if="${fieldError_upiId}" class="field-error">
+              <i class="icon-warning"></i>
+              <span th:text="${fieldError_upiId}"></span>
+            </div>
+            <small class="field-hint">Enter your UPI ID (e.g., username@bankname)</small>
+          </div>
+
+          <!-- Account Holder Name Field -->
+          <div class="form-group">
+            <label for="accountHolderName" class="required">Account Holder Name</label>
+            <input type="text" 
+                   th:field="*{accountHolderName}" 
+                   id="accountHolderName"
+                   placeholder="John Doe" 
+                   class="form-control"
+                   required>
+            <div th:if="${#fields.hasErrors('accountHolderName')}" class="field-error">
+              <i class="icon-warning"></i>
+              <span th:errors="*{accountHolderName}"></span>
+            </div>
+            <div th:if="${fieldError_accountHolderName}" class="field-error">
+              <i class="icon-warning"></i>
+              <span th:text="${fieldError_accountHolderName}"></span>
+            </div>
+            <small class="field-hint">Full name as registered with your bank</small>
+          </div>
+
+          <!-- Note Field -->
+          <div class="form-group full-width">
+            <label for="note">Payment Instructions</label>
+            <textarea th:field="*{note}" 
+                      id="note"
+                      placeholder="Additional payment instructions for customers (optional)" 
+                      class="form-control"
+                      rows="3"></textarea>
+            <div th:if="${#fields.hasErrors('note')}" class="field-error">
+              <i class="icon-warning"></i>
+              <span th:errors="*{note}"></span>
+            </div>
+            <div th:if="${fieldError_note}" class="field-error">
+              <i class="icon-warning"></i>
+              <span th:text="${fieldError_note}"></span>
+            </div>
+            <small class="field-hint">Optional instructions displayed to customers during payment</small>
+          </div>
+
+          <!-- QR Code Upload Field -->
+          <div class="form-group full-width">
+            <label for="qrImageFile">QR Code Image</label>
+            <div class="file-upload-container">
+              <input type="file" 
+                     name="qrImageFile" 
+                     id="qrImageFile"
+                     accept="image/*" 
+                     class="file-input"
+                     onchange="previewQRImage(this)">
+              <div class="file-upload-display">
+                <i class="icon-upload"></i>
+                <span class="file-text">Choose QR Code Image</span>
+                <span class="file-size-limit">Max 10MB (PNG, JPG, JPEG, GIF)</span>
+              </div>
+            </div>
+            
+            <!-- Current QR Code Preview (Edit Mode) -->
+            <div th:if="${(editMode != null and editMode) and upiForm.qrBase64 != null}" class="current-qr-preview">
+              <span class="current-label">Current QR Code:</span>
+              <img th:src="'data:image/png;base64,' + ${upiForm.qrBase64}" 
+                   class="qr-current-preview" 
+                   alt="Current QR Code"
+                   onclick="showFullQR(this)">
+            </div>
+
+            <!-- New QR Preview Container -->
+            <div id="newQrPreview" class="current-qr-preview" style="display:none;">
+              <span class="current-label">New QR Code Preview:</span>
+              <img id="qrPreviewImg" class="qr-current-preview" alt="New QR Code Preview" onclick="showFullQR(this)">
+            </div>
+          </div>
+
+        </div>
+
+      <!-- Form Actions -->
+<div class="form-actions">
+  <button type="submit" class="btn btn-primary">
+    <i th:class="${(editMode != null and editMode) ? 'icon-save' : 'icon-add'}"></i>
+    <span th:text="${(editMode != null and editMode) ? 'Update Payment Method' : 'Save Payment Method'}">Save Payment Method</span>
+  </button>
+  
+  <a th:href="@{/admin/upi-payments}" class="btn btn-secondary" th:if="${editMode != null and editMode}">
+    <i class="icon-cancel"></i>
+    Cancel
+  </a>
+
+  <!-- 🔧 NEW: Back to Dashboard button -->
+  <a th:href="@{/admindashboard(tab='payment-methods')}" class="btn btn-info">
+    <i class="icon-back"></i>
+    Back to Dashboard
+  </a>
+</div>
+
+
+      </form>
+    </div>
+
+    <!-- Payment Methods List Section -->
+    <div class="list-section">
+      <div class="list-header">
+        <h3>📋 Existing Payment Methods</h3>
+        <div class="list-stats" th:if="${upiList != null}">
+          <span class="stat-item">
+            <i class="icon-count"></i>
+            Total: <strong th:text="${totalUpiSettings}">0</strong>
+          </span>
+          <span class="stat-item">
+            <i class="icon-active"></i>
+            Active: <strong th:text="${activeUpiCount}">0</strong>
+          </span>
+        </div>
+      </div>
+
+      <!-- Payment Methods Table -->
+      <div class="table-container" th:if="${upiList != null and !upiList.empty}">
+        <table class="payments-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>UPI ID</th>
+              <th>Account Holder</th>
+              <th>Instructions</th>
+              <th>QR Code</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="upi : ${upiList}" th:class="${!upi.isActive} ? 'inactive-row'">
+              <td class="id-cell" th:text="${upi.id}">1</td>
+              
+              <td class="upi-cell">
+                <div class="upi-info">
+                  <span class="upi-id" th:text="${upi.upiId}">example@paytm</span>
+                </div>
+              </td>
+              
+              <td class="name-cell">
+                <div class="name-info">
+                  <span class="account-name" th:text="${upi.accountHolderName}">John Doe</span>
+                </div>
+              </td>
+              
+              <td class="note-cell">
+                <div class="note-content" th:title="${upi.note}">
+                  <span th:text="${#strings.length(upi.note) > 50 ? #strings.substring(upi.note, 0, 50) + '...' : upi.note}">Instructions...</span>
+                </div>
+              </td>
+              
+              <td class="qr-cell">
+                <div class="qr-preview-container">
+                  <img th:if="${upi.qrBase64 != null}" 
+                       th:src="'data:image/png;base64,' + ${upi.qrBase64}" 
+                       class="qr-preview" 
+                       alt="QR Code"
+                       onclick="showFullQR(this)"
+                       title="Click to view full size">
+                  <div th:unless="${upi.qrBase64 != null}" class="no-qr">
+                    <i class="icon-no-image"></i>
+                    <span>No QR</span>
+                  </div>
+                </div>
+              </td>
+              
+              <td class="status-cell">
+                <span th:if="${upi.isActive}" class="status-badge active">
+                  <i class="icon-check-circle"></i>
+                  Active
+                </span>
+                <span th:unless="${upi.isActive}" class="status-badge inactive">
+                  <i class="icon-x-circle"></i>
+                  Inactive
+                </span>
+              </td>
+              
+              <td class="date-cell">
+                <span class="date-text" th:text="${#temporals.format(upi.createdAt, 'MMM dd, yyyy')}">Jan 01, 2025</span>
+                <small class="time-text" th:text="${#temporals.format(upi.createdAt, 'HH:mm')}">12:00</small>
+              </td>
+              
+              <td class="actions-cell">
+                <div class="action-buttons">
+                  <!-- 🔧 FIXED: Use string concatenation for dynamic URLs -->
+                  <a th:href="@{${'/admin/upi-payments/' + upi.id + '/edit'}}" 
+                     class="btn btn-sm btn-edit" 
+                     title="Edit">
+                    <i class="icon-edit"></i>
+                    Edit
+                  </a>
+                  
+                  <form th:action="@{${'/admin/upi-payments/' + upi.id + '/delete'}}" 
+                        method="post" 
+                        style="display:inline" 
+                        onsubmit="return confirmDelete(this)">
+                    <button type="submit" 
+                            class="btn btn-sm btn-delete" 
+                            title="Delete"
+                            th:attr="data-name=${upi.accountHolderName}">
+                      <i class="icon-trash"></i>
+                      Delete
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" th:if="${upiList == null or upiList.empty}">
+        <div class="empty-icon">
+          <i class="icon-empty-wallet"></i>
+        </div>
+        <h4>No Payment Methods Found</h4>
+        <p>You haven't set up any UPI payment methods yet. Add your first payment method to start accepting payments.</p>
+        <button onclick="document.getElementById('upiId').focus()" class="btn btn-primary">
+          <i class="icon-add"></i>
+          Add First Payment Method
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- QR Code Modal -->
+  <div id="qr-modal" class="modal" onclick="closeModal()">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeModal()">&times;</span>
+      <img id="modal-qr" src="" alt="QR Code">
+    </div>
+  </div>
+
+  <!-- Enhanced CSS Styles -->
+  <style>
+    /* Container and Layout */
+    .payments-container {
+      padding: 24px;
+      background: #1e1e2f;
+      color: #f0f0f5;
+      min-height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* Page Header */
+    .page-header {
+      margin-bottom: 32px;
+      border-bottom: 2px solid #2a2a3d;
+      padding-bottom: 16px;
+    }
+
+    .page-header h2 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      color: #0dcaf0;
+    }
+
+    .page-header p {
+      margin: 0;
+      color: #9ca3af;
+      font-size: 16px;
+    }
+
+    /* Alert Messages */
+    .alert {
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+      animation: slideIn 0.3s ease;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid #10b981;
+      color: #10b981;
+    }
+
+    .alert-error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid #ef4444;
+      color: #ef4444;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form Section */
+    .form-section {
+      background: #2a2a3d;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      border: 1px solid #444;
+    }
+
+    .form-header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #444;
+    }
+
+    .form-header h3 {
+      margin: 0;
+      font-size: 20px;
+      color: #0dcaf0;
+    }
+
+    /* Form Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    /* Form Controls */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #f0f0f5;
+      font-size: 14px;
+    }
+
+    .form-group label.required::after {
+      content: ' *';
+      color: #ef4444;
+    }
+
+    .form-control {
+      padding: 12px 16px;
+      border: 2px solid #444;
+      border-radius: 8px;
+      background: #1e1e2f;
+      color: #f0f0f5;
+      font-size: 14px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: #0dcaf0;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.1);
+    }
+
+    .form-control::placeholder {
+      color: #6b7280;
+    }
+
+    /* File Upload */
+    .file-upload-container {
+      position: relative;
+    }
+
+    .file-input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-upload-display {
+      border: 2px dashed #444;
+      border-radius: 8px;
+      padding: 32px 20px;
+      text-align: center;
+      background: #1e1e2f;
+      transition: border-color 0.3s ease, background-color 0.3s ease;
+      cursor: pointer;
+    }
+
+    .file-upload-display:hover {
+      border-color: #0dcaf0;
+      background: #252533;
+    }
+
+    .file-upload-display .icon-upload::before {
+      content: "📁";
+      font-size: 48px;
+      color: #6b7280;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .file-text {
+      display: block;
+      font-size: 16px;
+      font-weight: 600;
+      color: #f0f0f5;
+      margin-bottom: 4px;
+    }
+
+    .file-size-limit {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    /* Current QR Preview */
+    .current-qr-preview {
+      margin-top: 16px;
+      padding: 16px;
+      background: #1e1e2f;
+      border-radius: 8px;
+      border: 1px solid #444;
+      text-align: center;
+    }
+
+    .current-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #0dcaf0;
+      font-size: 12px;
+    }
+
+    .qr-current-preview {
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      border: 2px solid #444;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .qr-current-preview:hover {
+      transform: scale(1.1);
+      border-color: #0dcaf0;
+    }
+
+    /* Field Errors and Hints */
+    .field-error {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      color: #ef4444;
+      font-size: 12px;
+      font-weight: 500;
+      animation: shake 0.3s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-2px); }
+      75% { transform: translateX(2px); }
+    }
+
+    .field-hint {
+      margin-top: 6px;
+      color: #9ca3af;
+      font-size: 12px;
+    }
+
+    /* Form Actions */
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-start;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: #0dcaf0;
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: #0bb5d6;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #6b7280;
+      color: #fff;
+    }
+
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .btn-edit {
+      background: #10b981;
+      color: #fff;
+    }
+
+    .btn-edit:hover {
+      background: #059669;
+    }
+
+    .btn-delete {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    .btn-delete:hover {
+      background: #dc2626;
+    }
+
+    /* List Section */
+    .list-section {
+      background: #2a2a3d;
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid #444;
+    }
+
+    .list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #444;
+    }
+
+    .list-header h3 {
+      margin: 0;
+      font-size: 20px;
+      color: #0dcaf0;
+    }
+
+    .list-stats {
+      display: flex;
+      gap: 24px;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    /* Table */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid #444;
+    }
+
+    .payments-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #1e1e2f;
+    }
+
+    .payments-table th,
+    .payments-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #444;
+    }
+
+    .payments-table th {
+      background: #151521;
+      color: #0dcaf0;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .payments-table tbody tr:hover {
+      background: #252533;
+    }
+
+    .payments-table tbody tr.inactive-row {
+      opacity: 0.6;
+    }
+
+    /* Table Cells */
+    .id-cell {
+      width: 60px;
+      font-family: monospace;
+      color: #9ca3af;
+    }
+
+    .upi-cell {
+      min-width: 180px;
+    }
+
+    .upi-id {
+      font-family: monospace;
+      background: #151521;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .name-cell {
+      min-width: 150px;
+    }
+
+    .account-name {
+      font-weight: 600;
+    }
+
+    .note-cell {
+      max-width: 200px;
+    }
+
+    .note-content {
+      cursor: help;
+    }
+
+    .qr-cell {
+      width: 80px;
+      text-align: center;
+    }
+
+    .qr-preview {
+      width: 50px;
+      height: 50px;
+      border-radius: 6px;
+      border: 2px solid #444;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .qr-preview:hover {
+      transform: scale(1.2);
+      border-color: #0dcaf0;
+    }
+
+    .no-qr {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #6b7280;
+      font-size: 10px;
+    }
+
+    .status-cell {
+      width: 100px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-badge.active {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+    }
+
+    .status-badge.inactive {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+
+    .date-cell {
+      width: 100px;
+      font-size: 12px;
+    }
+
+    .date-text {
+      display: block;
+      font-weight: 600;
+    }
+
+    .time-text {
+      color: #9ca3af;
+    }
+
+    .actions-cell {
+      width: 120px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 64px 32px;
+      color: #9ca3af;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state h4 {
+      margin: 0 0 8px 0;
+      color: #f0f0f5;
+      font-size: 20px;
+    }
+
+    .empty-state p {
+      margin: 0 0 24px 0;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.5;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-content {
+      position: relative;
+      margin: 5% auto;
+      padding: 20px;
+      width: auto;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: -10px;
+      right: 10px;
+      font-size: 40px;
+      font-weight: bold;
+      color: #fff;
+      cursor: pointer;
+      z-index: 1001;
+    }
+
+    #modal-qr {
+      max-width: 100%;
+      max-height: 80vh;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .payments-container {
+        padding: 16px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+
+      .list-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .payments-table {
+        font-size: 12px;
+      }
+
+      .payments-table th,
+      .payments-table td {
+        padding: 8px 6px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
+      .btn-info {
+  background: #6c757d;
+  color: #fff;
+}
+
+.btn-info:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Add back icon */
+.icon-back::before { 
+  content: "←"; 
+  font-weight: bold;
+}
+      
+    }
+
+    /* Icons (Using CSS pseudo-elements for basic icons) */
+    .icon-check::before { content: "✓"; }
+    .icon-error::before { content: "✕"; }
+    .icon-warning::before { content: "⚠"; }
+    .icon-upload::before { content: "📁"; }
+    .icon-save::before { content: "💾"; }
+    .icon-add::before { content: "➕"; }
+    .icon-cancel::before { content: "✕"; }
+    .icon-count::before { content: "#"; }
+    .icon-active::before { content: "✓"; }
+    .icon-check-circle::before { content: "✓"; }
+    .icon-x-circle::before { content: "✕"; }
+    .icon-edit::before { content: "✏"; }
+    .icon-trash::before { content: "🗑"; }
+    .icon-no-image::before { content: "📷"; }
+    .icon-empty-wallet::before { content: "💳"; }
+
+  </style>
+
+  <!-- JavaScript Functions -->
+  <script>
+    // Show QR Code in Modal
+    function showFullQR(img) {
+      const modal = document.getElementById('qr-modal');
+      const modalImg = document.getElementById('modal-qr');
+      modal.style.display = 'block';
+      modalImg.src = img.src;
+    }
+
+    // Close Modal
+    function closeModal() {
+      const modal = document.getElementById('qr-modal');
+      modal.style.display = 'none';
+    }
+
+    // Confirm Delete
+    function confirmDelete(form) {
+      const name = form.querySelector('button').getAttribute('data-name');
+      return confirm(`Are you sure you want to delete the payment method for "${name}"?\n\nThis action cannot be undone.`);
+    }
+
+    // Preview QR Image
+    function previewQRImage(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Update file text display
+        const fileText = document.querySelector('.file-text');
+        fileText.textContent = file.name;
+        
+        // Validate file size (10MB limit)
+        if (file.size > 10 * 1024 * 1024) {
+          alert('File size exceeds 10MB limit. Please choose a smaller file.');
+          input.value = '';
+          fileText.textContent = 'Choose QR Code Image';
+          return;
+        }
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          alert('Please select a valid image file (PNG, JPG, JPEG, GIF)');
+          input.value = '';
+          fileText.textContent = 'Choose QR Code Image';
+          return;
+        }
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const previewContainer = document.getElementById('newQrPreview');
+          const previewImg = document.getElementById('qrPreviewImg');
+          
+          previewImg.src = e.target.result;
+          previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Auto-hide alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+      const alerts = document.querySelectorAll('.alert');
+      alerts.forEach(alert => {
+        setTimeout(() => {
+          alert.style.opacity = '0';
+          alert.style.transform = 'translateY(-10px)';
+          setTimeout(() => {
+            alert.style.display = 'none';
+          }, 300);
+        }, 5000);
+      });
+    });
+  </script>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!-- src/main/resources/templates/login.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login - YT Booster</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <style>
+    :root {
+      --bg: #0f172a;         /* slate-900 */
+      --card: #111827;       /* gray-900 */
+      --text: #e5e7eb;       /* gray-200 */
+      --muted: #94a3b8;      /* slate-400 */
+      --primary: #22c55e;    /* green-500 */
+      --primary-hover: #16a34a; /* green-600 */
+      --danger: #ef4444;     /* red-500 */
+      --link: #60a5fa;       /* blue-400 */
+      --border: #1f2937;     /* gray-800 */
+      --input-bg: #0b1220;   /* custom dark input bg */
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      background: radial-gradient(1200px 800px at 20% 0%, #0b1220 0%, var(--bg) 45%, #0a0f1f 100%);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.0) 100%), var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow:
+        0 10px 30px rgba(0,0,0,0.45),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+      backdrop-filter: blur(2px);
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 18px 0;
+      font-size: 22px;
+      letter-spacing: 0.2px;
+    }
+
+    .title .lock {
+      display: inline-grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: rgba(34,197,94,0.12);
+      color: var(--primary);
+      border: 1px solid rgba(34,197,94,0.2);
+      font-size: 18px;
+    }
+
+    .subtitle {
+      margin: 0 0 18px 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: rgba(34,197,94,0.5);
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px 14px;
+      border: 0;
+      border-radius: 10px;
+      background: linear-gradient(180deg, var(--primary), var(--primary-hover));
+      color: #06110a;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: transform 0.06s ease, box-shadow 0.2s ease;
+      box-shadow: 0 6px 16px rgba(34,197,94,0.25);
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .error,
+    .logout {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      border: 1px solid;
+      background: rgba(0,0,0,0.15);
+    }
+    .error {
+      color: #fecaca;
+      border-color: rgba(239, 68, 68, 0.45);
+      background: rgba(239, 68, 68, 0.10);
+    }
+    .logout {
+      color: #bbf7d0;
+      border-color: rgba(34,197,94,0.45);
+      background: rgba(34, 197, 94, 0.10);
+    }
+
+    .foot {
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .foot a {
+      color: var(--link);
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(96,165,250,0.4);
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+    .foot a:hover {
+      color: #93c5fd;
+      border-color: rgba(147,197,253,0.7);
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h2 class="title">
+      <span class="lock">🔐</span>
+      Login to YT Booster
+    </h2>
+
+    <p class="subtitle">Enter email and password to continue.</p>
+
+    <form th:action="@{/login}" method="post">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" name="email" autocomplete="username" required />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" autocomplete="current-password" required />
+      </div>
+
+      <!-- If CSRF is enabled in security config, keep this token -->
+      <input type="hidden" th:name="${_csrf?.parameterName}" th:value="${_csrf?.token}" />
+
+      <div class="actions">
+        <button class="btn" type="submit">Login</button>
+      </div>
+
+      <!-- Show standard Spring Security messages -->
+      <div th:if="${param.error}" class="error">Invalid credentials. Please try again.</div>
+      <div th:if="${param.logout}" class="logout">You have been logged out.</div>
+
+      <!-- Optional custom message binding -->
+      <p th:if="${error}" class="error" th:text="${error}"></p>
+    </form>
+
+    <p class="foot">
+      Don’t have an account?
+      <a th:href="@{/signup}">Register</a>
+    </p>
+  </main>
+</body>
+ <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+      var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+      s1.async=true;
+      s1.src='https://embed.tawk.to/68ac9733e458d3192c415c8a/1j3h2t8mb';
+      s1.charset='UTF-8';
+      s1.setAttribute('crossorigin','*');
+      s1.setAttribute('crossorigin','*');
+      s0.parentNode.insertBefore(s1,s0);
+    })();
+  </script>
+</html>

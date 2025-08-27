@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>UPI Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- 🌟 Modern CSS Styling -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #f9fafc, #eef2f7);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h2, h5 {
+            font-weight: 600;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .btn {
+            border-radius: 8px;
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4e73df, #224abe);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #3759c3, #1e3a8a);
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f6c23e, #e0a800);
+            border: none;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #d39e00, #b38600);
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #36b9cc, #258ea6);
+            border: none;
+            color: #fff;
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #258ea6, #186f88);
+            transform: translateY(-2px);
+        }
+
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table thead {
+            background: #f1f4f9;
+        }
+
+        .table-hover tbody tr:hover {
+            background: rgba(78, 115, 223, 0.08);
+            transition: background 0.2s ease;
+        }
+
+        img.img-thumbnail {
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+        }
+
+        /* Latest UPI special highlight */
+        .border-success {
+            border-left: 5px solid #28a745 !important;
+        }
+
+        /* Form styling */
+        input[type="text"], input[type="file"] {
+            border-radius: 8px !important;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container my-5">
+
+    <h2 class="text-center mb-4">UPI Management</h2>
+
+    <div class="row">
+        <!-- UPI Form -->
+        <div class="col-md-6">
+            <div class="card p-4">
+                <h5 class="card-title mb-3">Add / Update UPI</h5>
+                <form th:action="@{/upi/save}" th:object="${upiDto}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">UPI ID</label>
+                        <input type="text" th:field="*{upiId}" class="form-control" placeholder="example@upi" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">QR Code Image</label>
+                        <input type="file" name="qrImageFile" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save UPI</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Latest UPI -->
+        <div class="col-md-6">
+            <div class="card p-4 border-success">
+                <h5 class="card-title mb-3">Latest UPI</h5>
+                <div th:if="${latestUpi != null}">
+                    <p><strong>UPI ID:</strong> <span th:text="${latestUpi.upiId}"></span></p>
+                    <div th:if="${latestUpi.qrCode != null}">
+                        <img th:src="'data:image/png;base64,' + ${#strings.encodeBase64(latestUpi.qrCode)}"
+                             class="img-fluid img-thumbnail"
+                             style="max-width: 200px;"/>
+                    </div>
+                </div>
+                <div th:if="${latestUpi == null}">
+                    <p class="text-muted">No UPI details found.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPI List -->
+    <div class="card p-4 mt-4">
+        <h5 class="card-title mb-3">All UPI Records</h5>
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>UPI ID</th>
+                    <th>QR Code</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="upi : ${upiList}">
+                    <td th:text="${upi.id}"></td>
+                    <td th:text="${upi.upiId}"></td>
+                    <td>
+                        <img th:if="${upi.qrCode != null}"
+                             th:src="'data:image/png;base64,' + ${#strings.encodeBase64(upi.qrCode)}"
+                             class="img-thumbnail"
+                             style="max-width: 80px;"/>
+                    </td>
+                    <td th:text="${upi.createdAt}"></td>
+                    <td>
+                        <a th:href="@{/upi/edit/{id}(id=${upi.id})}" class="btn btn-warning btn-sm">Edit</a>
+                        <a th:href="@{/upi/id/{id}(id=${upi.id})}" class="btn btn-info btn-sm">Details</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

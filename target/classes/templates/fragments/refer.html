@@ -1,0 +1,467 @@
+<div th:fragment="refer">
+
+    <!-- Referral Code Section -->
+    <div class="referral-card">
+        <div class="card-header">
+            <h2>🔗 Your Referral Code</h2>
+        </div>
+        <div class="referral-code-container">
+            <div class="referral-code-display">
+                <span class="referral-code" th:text="${referralCode != null ? referralCode : 'N/A'}">REF123456</span>
+                <button class="copy-btn"
+                        th:attr="data-code=${referralCode != null ? referralCode : 'N/A'}"
+                        onclick="copyReferralCode(this)">
+                    📋 Copy
+                </button>
+            </div>
+            <div class="referral-link-section">
+                <p class="referral-info">Share this link with friends:</p>
+                <div class="referral-link-display">
+                    <input type="text" 
+                           th:value="'http://localhost:8080/register?ref=' + ${referralCode != null ? referralCode : 'N/A'}"
+                           class="referral-link-input" 
+                           id="referralLink" 
+                           readonly>
+                    <button class="copy-link-btn" onclick="copyReferralLink()">🔗 Copy Link</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Terms & Conditions -->
+    <div class="referral-card">
+        <div class="card-header">
+            <h2>📋 Referral Terms & Conditions</h2>
+        </div>
+        <div class="terms-content">
+            <ul class="terms-list">
+                <li>💰 The referral bonus of <strong>₹20</strong> will be credited only after the referred user completes a minimum recharge of <strong>₹50</strong>.</li>
+                <li>✅ <strong>You (referrer) must also have at least one completed recharge of ₹20 or more to be eligible for the bonus.</strong></li>
+                <li>📈 All completed recharges of the referred user count towards the referral bonus.</li>
+                <li>⚡ Bonus will be credited to the referrer automatically once both conditions are met.</li>
+                <li>👥 The referral program is valid only for registered users.</li>
+                <li>⚠️ The company reserves the right to modify or terminate the referral program at any time.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Referral History Section -->
+    <div class="referral-card">
+        <div class="card-header">
+            <h2>📊 Referral History</h2>
+        </div>
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="referral-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Referred User</th>
+                            <th>Total Recharge</th>
+                            <th>Reward Status</th>
+                            <th>Reward Amount</th>
+                            <th>Last Update</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="ref, iterStat : ${referralHistory}">
+                            <td class="row-number" th:text="${iterStat.count}">1</td>
+                            <td class="user-id">
+                                <span class="user-badge">User #<span th:text="${ref.referredUserId}">123</span></span>
+                            </td>
+                            <td class="amount" th:text="'₹' + ${ref.totalRecharge != null ? ref.totalRecharge : 0}">₹0</td>
+                            <td class="status-cell">
+                                <span th:if="${ref.rewarded}" 
+                                      class="status-badge status-success">
+                                    ✅ Rewarded
+                                </span>
+                                <span th:if="${!ref.rewarded and ref.totalRecharge != null and ref.totalRecharge >= 50}" 
+                                      class="status-badge status-processing">
+                                    ⏳ Processing
+                                </span>
+                                <span th:if="${!ref.rewarded and (ref.totalRecharge == null or ref.totalRecharge < 50)}" 
+                                      class="status-badge status-pending">
+                                    📈 Needs ₹<span th:text="${50 - (ref.totalRecharge != null ? ref.totalRecharge : 0)}">50</span> more
+                                </span>
+                            </td>
+                            <td class="reward-amount">
+                                <span th:if="${ref.amount != null and ref.amount > 0}" 
+                                      class="amount-success">₹<span th:text="${ref.amount}">20</span></span>
+                                <span th:unless="${ref.amount != null and ref.amount > 0}" 
+                                      class="amount-pending">-</span>
+                            </td>
+                            <td class="date-cell" th:text="${ref.lastUpdate != null ? #temporals.format(ref.lastUpdate, 'dd MMM yyyy') : '-'}">-</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(referralHistory)}" class="empty-row">
+                            <td colspan="6" class="empty-message">
+                                <div class="empty-state">
+                                    <div class="empty-icon">👥</div>
+                                    <p>No referral history found.</p>
+                                    <p class="empty-hint">Start sharing your referral code to earn rewards!</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* 🎨 Dashboard Theme CSS Variables */
+        :root {
+            --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            --primary-color: #0dcaf0;
+            --secondary-color: #20c997;
+            --background-dark: #1e1e2f;
+            --surface-dark: #2a2a3d;
+            --surface-light: #333347;
+            --text-primary: #f0f0f5;
+            --text-secondary: #9ca3af;
+            --border-color: #444;
+            --success-color: #22c55e;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+        }
+
+        /* Card Styling */
+        .referral-card {
+            background: var(--surface-dark);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 1px solid #333;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            font-family: var(--font-primary);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--surface-light) 0%, var(--surface-dark) 100%);
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+            font-family: var(--font-primary);
+        }
+
+        /* Referral Code Section */
+        .referral-code-container {
+            padding: 2rem;
+        }
+
+        .referral-code-display {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--surface-light);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .referral-code {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            background: rgba(13, 202, 240, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid rgba(13, 202, 240, 0.3);
+            flex: 1;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-primary);
+            font-size: 0.9rem;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 202, 240, 0.4);
+        }
+
+        /* Referral Link Section */
+        .referral-link-section {
+            margin-top: 1.5rem;
+        }
+
+        .referral-info {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .referral-link-display {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .referral-link-input {
+            flex: 1;
+            background: var(--background-dark);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.85rem;
+        }
+
+        .referral-link-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 202, 240, 0.1);
+        }
+
+        .copy-link-btn {
+            background: var(--surface-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.85rem;
+        }
+
+        .copy-link-btn:hover {
+            background: var(--primary-color);
+            color: #000;
+            border-color: var(--primary-color);
+        }
+
+        /* Terms Content */
+        .terms-content {
+            padding: 2rem;
+        }
+
+        .terms-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .terms-list li {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(13, 202, 240, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .terms-list li strong {
+            color: var(--primary-color);
+        }
+
+        /* Table Styling */
+        .table-container {
+            padding: 2rem;
+        }
+
+        .table-responsive {
+            background: var(--surface-light);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .referral-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-primary);
+        }
+
+        .referral-table th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #000;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .referral-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .referral-table tr:hover {
+            background: rgba(13, 202, 240, 0.05);
+        }
+
+        .row-number {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .user-badge {
+            background: rgba(13, 202, 240, 0.1);
+            color: var(--primary-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .amount {
+            font-weight: 600;
+            color: var(--success-color);
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .status-processing {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .status-pending {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .amount-success {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .amount-pending {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .date-cell {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Empty State */
+        .empty-row td {
+            border: none;
+            padding: 3rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .empty-hint {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .referral-code-display {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .referral-link-display {
+                flex-direction: column;
+            }
+
+            .referral-table {
+                font-size: 0.8rem;
+            }
+
+            .referral-table th,
+            .referral-table td {
+                padding: 0.5rem;
+            }
+
+            .card-header,
+            .referral-code-container,
+            .terms-content,
+            .table-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+
+    <!-- JavaScript for Copy Functionality -->
+    <script>
+        function copyReferralCode(button) {
+            const code = button.getAttribute('data-code');
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.innerHTML;
+                button.innerHTML = '✅ Copied!';
+                button.style.background = '#22c55e';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = 'linear-gradient(135deg, #0dcaf0, #20c997)';
+                }, 2000);
+            });
+        }
+
+        function copyReferralLink() {
+            const linkInput = document.getElementById('referralLink');
+            linkInput.select();
+            document.execCommand('copy');
+            
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '✅ Copied!';
+            button.style.background = '#22c55e';
+            button.style.color = '#fff';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.background = '#333347';
+                button.style.color = '#f0f0f5';
+            }, 2000);
+        }
+    </script>
+
+</div>
